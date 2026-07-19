@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap');
+@import "tailwindcss";
+
+/* ============================================
+   BACHAT+ DESIGN TOKENS
+   Change values here to re-theme the entire app.
+   ============================================ */
+@theme {
+  /* Brand colors */
+  --color-navy: #0a2e5c;
+  --color-navy-dark: #071f3f;
+  --color-navy-light: #123b6e;
+  --color-teal: #00a896;
+  --color-mint: #02c39a;
+  --color-mint-light: #e4f9f3;
+
+  /* Neutrals */
+  --color-bg: #f4f8f7;
+  --color-surface: #ffffff;
+  --color-border: #e3eaea;
+  --color-text: #17262b;
+  --color-text-muted: #5b6b73;
+  --color-danger: #e5484d;
+  --color-warning: #f5a524;
+  --color-success: #02c39a;
+
+  /* Fonts */
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-display: 'Sora', system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+}
+
+/* Scrollbar polish — small but noticeable premium touch */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-teal);
+}
