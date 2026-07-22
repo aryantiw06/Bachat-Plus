@@ -117,6 +117,25 @@ export function WalletProvider({ children }) {
     
   const totalTransactions = transactions.length;
 
+  // ---- Analytics Derived Values ----
+  const averageRoundup = totalTransactions > 0
+    ? Math.round(transactions.reduce((sum, tx) => sum + tx.roundup, 0) / totalTransactions)
+    : 0;
+
+  const largestRoundup = totalTransactions > 0
+    ? Math.max(...transactions.map((tx) => tx.roundup))
+    : 0;
+
+  // Category breakdown: { food: { spent: 500, roundup: 30, count: 3 }, ... }
+  const categoryBreakdown = transactions.reduce((acc, tx) => {
+    const cat = tx.category || 'other';
+    if (!acc[cat]) acc[cat] = { spent: 0, roundup: 0, count: 0 };
+    acc[cat].spent += tx.purchaseAmount;
+    acc[cat].roundup += tx.roundup;
+    acc[cat].count += 1;
+    return acc;
+  }, {});
+
   // ---- Unified Payment Processor ----
   const processRoundUpPayment = useCallback(
     async (transaction) => {
@@ -181,6 +200,10 @@ export function WalletProvider({ children }) {
     monthlyTotal,
     goalProgress,
     totalTransactions,
+    // Analytics
+    averageRoundup,
+    largestRoundup,
+    categoryBreakdown,
     // Status State
     loadingWallet,
     syncStatus,

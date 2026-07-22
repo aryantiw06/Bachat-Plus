@@ -4,12 +4,15 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './contexts/AuthContext.jsx'
 import { WalletProvider } from './contexts/WalletContext.jsx'
+import { PremiumProvider } from './contexts/PremiumContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
       <WalletProvider>
-        <App />
+        <PremiumProvider>
+          <App />
+        </PremiumProvider>
       </WalletProvider>
     </AuthProvider>
   </StrictMode>,

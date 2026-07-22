@@ -12,22 +12,13 @@ import Payment from '../pages/Payment.jsx';
 import Wallet from '../pages/Wallet.jsx';
 import Investments from '../pages/Investments.jsx';
 import AIAdvisor from '../pages/AIAdvisor.jsx';
+import Analytics from '../pages/Analytics.jsx';
 import Profile from '../pages/Profile.jsx';
 import Premium from '../pages/Premium.jsx';
 import Settings from '../pages/Settings.jsx';
+import Notifications from '../pages/Notifications.jsx';
 import NotFound from '../pages/NotFound.jsx';
 
-/**
- * AppRoutes — every route in Bachat+, grouped by which layout wraps it.
- *
- *  PublicLayout    → Landing
- *  AuthLayout      → Login, Signup
- *  DashboardLayout → Dashboard, Payment, Wallet, Investments,
- *                    AI Advisor, Profile, Premium, Settings
- *
- * No login-protection logic yet — every route is open for now.
- * That gets added in the Authentication module.
- */
 export default function AppRoutes() {
   return (
     <Routes>
@@ -46,9 +37,11 @@ export default function AppRoutes() {
         <Route path="/wallet" element={<Wallet />} />
         <Route path="/investments" element={<Investments />} />
         <Route path="/ai-advisor" element={<AIAdvisor />} />
+        <Route path="/analytics" element={<Analytics />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/premium" element={<Premium />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
