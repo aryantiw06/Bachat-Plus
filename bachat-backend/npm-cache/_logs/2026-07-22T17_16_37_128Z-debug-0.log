@@ -1,0 +1,554 @@
+0 verbose cli /usr/local/bin/node /usr/local/bin/npm
+1 info using npm@11.16.0
+2 info using node@v24.18.0
+3 silly config load:file:/usr/local/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/aryanrajtiwary/Desktop/bachat-plus/bachat-backend/.npmrc
+5 silly config load:file:/Users/aryanrajtiwary/.npmrc
+6 silly config load:file:/usr/local/etc/npmrc
+7 verbose title npm install helmet morgan compression cookie-parser express-rate-limit uuid
+8 verbose argv "install" "--cache" "./npm-cache" "helmet" "morgan" "compression" "cookie-parser" "express-rate-limit" "uuid"
+9 verbose logfile logs-max:10 dir:/Users/aryanrajtiwary/Desktop/bachat-plus/bachat-backend/npm-cache/_logs/2026-07-22T17_16_37_128Z-
+10 verbose logfile /Users/aryanrajtiwary/Desktop/bachat-plus/bachat-backend/npm-cache/_logs/2026-07-22T17_16_37_128Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:4496293888 maxSize:1124073472 maxEntrySize:562036736
+13 silly idealTree buildDeps
+14 silly fetch manifest helmet@*
+15 silly packumentCache full:https://registry.npmjs.org/helmet cache-miss
+16 http fetch GET 200 https://registry.npmjs.org/npm 472ms
+17 http fetch GET 200 https://registry.npmjs.org/helmet 635ms (cache miss)
+18 silly packumentCache full:https://registry.npmjs.org/helmet set size:undefined disposed:false
+19 silly fetch manifest morgan@*
+20 silly packumentCache full:https://registry.npmjs.org/morgan cache-miss
+21 http fetch GET 200 https://registry.npmjs.org/morgan 95ms (cache miss)
+22 silly packumentCache full:https://registry.npmjs.org/morgan set size:undefined disposed:false
+23 silly fetch manifest compression@*
+24 silly packumentCache full:https://registry.npmjs.org/compression cache-miss
+25 http fetch GET 200 https://registry.npmjs.org/compression 91ms (cache miss)
+26 silly packumentCache full:https://registry.npmjs.org/compression set size:undefined disposed:false
+27 silly fetch manifest cookie-parser@*
+28 silly packumentCache full:https://registry.npmjs.org/cookie-parser cache-miss
+29 http fetch GET 200 https://registry.npmjs.org/cookie-parser 76ms (cache miss)
+30 silly packumentCache full:https://registry.npmjs.org/cookie-parser set size:undefined disposed:false
+31 silly fetch manifest express-rate-limit@*
+32 silly packumentCache full:https://registry.npmjs.org/express-rate-limit cache-miss
+33 http fetch GET 200 https://registry.npmjs.org/express-rate-limit 107ms (cache miss)
+34 silly packumentCache full:https://registry.npmjs.org/express-rate-limit set size:undefined disposed:false
+35 silly fetch manifest express@^5.2.1
+36 silly packumentCache full:https://registry.npmjs.org/express cache-miss
+37 http fetch GET 200 https://registry.npmjs.org/express 164ms (cache miss)
+38 silly packumentCache full:https://registry.npmjs.org/express set size:undefined disposed:false
+39 silly fetch manifest uuid@*
+40 silly packumentCache full:https://registry.npmjs.org/uuid cache-miss
+41 http fetch GET 200 https://registry.npmjs.org/uuid 110ms (cache miss)
+42 silly packumentCache full:https://registry.npmjs.org/uuid set size:undefined disposed:false
+43 silly placeDep ROOT compression@1.8.1 OK for: bachat-backend@1.0.0 want: *
+44 silly placeDep ROOT cookie-parser@1.4.7 OK for: bachat-backend@1.0.0 want: *
+45 silly placeDep ROOT express-rate-limit@8.6.0 OK for: bachat-backend@1.0.0 want: *
+46 silly placeDep ROOT helmet@8.3.0 OK for: bachat-backend@1.0.0 want: *
+47 silly placeDep ROOT morgan@1.11.0 OK for: bachat-backend@1.0.0 want: *
+48 silly placeDep ROOT uuid@14.0.1 REPLACE for: bachat-backend@1.0.0 want: *
+49 silly fetch manifest debug@2.6.9
+50 silly packumentCache full:https://registry.npmjs.org/debug cache-miss
+51 silly fetch manifest negotiator@~0.6.4
+52 silly packumentCache full:https://registry.npmjs.org/negotiator cache-miss
+53 silly fetch manifest on-headers@~1.1.0
+54 silly packumentCache full:https://registry.npmjs.org/on-headers cache-miss
+55 silly fetch manifest compressible@~2.0.18
+56 silly packumentCache full:https://registry.npmjs.org/compressible cache-miss
+57 silly fetch manifest cookie-signature@1.0.6
+58 silly packumentCache full:https://registry.npmjs.org/cookie-signature cache-miss
+59 silly fetch manifest ip-address@^10.2.0
+60 silly packumentCache full:https://registry.npmjs.org/ip-address cache-miss
+61 silly fetch manifest basic-auth@~2.0.1
+62 silly packumentCache full:https://registry.npmjs.org/basic-auth cache-miss
+63 silly fetch manifest debug@2.6.9
+64 silly packumentCache full:https://registry.npmjs.org/debug cache-miss
+65 silly fetch manifest on-headers@~1.1.0
+66 silly packumentCache full:https://registry.npmjs.org/on-headers cache-miss
+67 http fetch GET 200 https://registry.npmjs.org/negotiator 104ms (cache miss)
+68 silly packumentCache full:https://registry.npmjs.org/negotiator set size:undefined disposed:false
+69 http fetch GET 200 https://registry.npmjs.org/debug 132ms (cache miss)
+70 silly packumentCache full:https://registry.npmjs.org/debug set size:undefined disposed:false
+71 http fetch GET 200 https://registry.npmjs.org/cookie-signature 267ms (cache miss)
+72 silly packumentCache full:https://registry.npmjs.org/cookie-signature set size:undefined disposed:false
+73 http fetch GET 200 https://registry.npmjs.org/on-headers 279ms (cache miss)
+74 silly packumentCache full:https://registry.npmjs.org/on-headers set size:undefined disposed:false
+75 http fetch GET 200 https://registry.npmjs.org/on-headers 298ms (cache miss)
+76 silly packumentCache full:https://registry.npmjs.org/on-headers set size:undefined disposed:false
+77 http fetch GET 200 https://registry.npmjs.org/basic-auth 301ms (cache miss)
+78 silly packumentCache full:https://registry.npmjs.org/basic-auth set size:undefined disposed:false
+79 http fetch GET 200 https://registry.npmjs.org/compressible 308ms (cache miss)
+80 silly packumentCache full:https://registry.npmjs.org/compressible set size:undefined disposed:false
+81 http fetch GET 200 https://registry.npmjs.org/ip-address 323ms (cache miss)
+82 silly packumentCache full:https://registry.npmjs.org/ip-address set size:undefined disposed:false
+83 http fetch GET 200 https://registry.npmjs.org/debug 324ms (cache miss)
+84 silly packumentCache full:https://registry.npmjs.org/debug set size:undefined disposed:false
+85 silly placeDep ROOT compressible@2.0.18 OK for: compression@1.8.1 want: ~2.0.18
+86 silly placeDep node_modules/compression debug@2.6.9 OK for: compression@1.8.1 want: 2.6.9
+87 silly placeDep node_modules/compression negotiator@0.6.4 OK for: compression@1.8.1 want: ~0.6.4
+88 silly placeDep ROOT on-headers@1.1.0 OK for: compression@1.8.1 want: ~1.1.0
+89 silly fetch manifest ms@2.0.0
+90 silly packumentCache full:https://registry.npmjs.org/ms cache-miss
+91 http fetch GET 200 https://registry.npmjs.org/ms 83ms (cache miss)
+92 silly packumentCache full:https://registry.npmjs.org/ms set size:undefined disposed:false
+93 silly placeDep node_modules/cookie-parser cookie-signature@1.0.6 OK for: cookie-parser@1.4.7 want: 1.0.6
+94 silly placeDep ROOT ip-address@10.2.0 OK for: express-rate-limit@8.6.0 want: ^10.2.0
+95 silly fetch manifest uuid@^9.0.1
+96 silly packumentCache full:https://registry.npmjs.org/uuid cache-miss
+97 http cache https://registry.npmjs.org/uuid 6ms (cache hit)
+98 silly packumentCache full:https://registry.npmjs.org/uuid set size:256419 disposed:false
+99 silly placeDep node_modules/gaxios uuid@9.0.1 OK for: gaxios@6.7.1 want: ^9.0.1
+100 silly placeDep ROOT basic-auth@2.0.1 OK for: morgan@1.11.0 want: ~2.0.1
+101 silly placeDep node_modules/morgan debug@2.6.9 OK for: morgan@1.11.0 want: 2.6.9
+102 silly fetch manifest safe-buffer@5.1.2
+103 silly packumentCache full:https://registry.npmjs.org/safe-buffer cache-miss
+104 http fetch GET 200 https://registry.npmjs.org/safe-buffer 95ms (cache miss)
+105 silly packumentCache full:https://registry.npmjs.org/safe-buffer set size:undefined disposed:false
+106 silly placeDep node_modules/basic-auth safe-buffer@5.1.2 OK for: basic-auth@2.0.1 want: 5.1.2
+107 silly fetch manifest uuid@^9.0.0
+108 silly packumentCache full:https://registry.npmjs.org/uuid cache-hit
+109 silly placeDep node_modules/teeny-request uuid@9.0.1 OK for: teeny-request@9.0.0 want: ^9.0.0
+110 silly placeDep node_modules/compression ms@2.0.0 OK for: debug@2.6.9 want: 2.0.0
+111 silly fetch manifest gcp-metadata@^7.0.1
+112 silly packumentCache full:https://registry.npmjs.org/gcp-metadata cache-miss
+113 http fetch GET 200 https://registry.npmjs.org/gcp-metadata 112ms (cache miss)
+114 silly packumentCache full:https://registry.npmjs.org/gcp-metadata set size:undefined disposed:false
+115 silly placeDep node_modules/mongoose gcp-metadata@7.0.1 OK for: mongodb@7.2.0 want: ^7.0.1
+116 silly fetch manifest gaxios@^7.0.0
+117 silly packumentCache full:https://registry.npmjs.org/gaxios cache-miss
+118 http fetch GET 200 https://registry.npmjs.org/gaxios 151ms (cache miss)
+119 silly packumentCache full:https://registry.npmjs.org/gaxios set size:undefined disposed:false
+120 silly placeDep node_modules/mongoose gaxios@7.2.0 OK for: gcp-metadata@7.0.1 want: ^7.0.0
+121 silly fetch manifest node-fetch@^3.3.2
+122 silly packumentCache full:https://registry.npmjs.org/node-fetch cache-miss
+123 http fetch GET 200 https://registry.npmjs.org/node-fetch 204ms (cache miss)
+124 silly packumentCache full:https://registry.npmjs.org/node-fetch set size:undefined disposed:false
+125 silly placeDep node_modules/mongoose node-fetch@3.3.2 OK for: gaxios@7.2.0 want: ^3.3.2
+126 silly placeDep node_modules/morgan ms@2.0.0 OK for: debug@2.6.9 want: 2.0.0
+127 silly reify mark retired [
+127 silly reify   '/Users/aryanrajtiwary/Desktop/bachat-plus/bachat-backend/node_modules/uuid',
+127 silly reify   '/Users/aryanrajtiwary/Desktop/bachat-plus/bachat-backend/node_modules/.bin/uuid'
+127 silly reify ]
+128 silly reify moves {
+128 silly reify   '/Users/aryanrajtiwary/Desktop/bachat-plus/bachat-backend/node_modules/uuid': '/Users/aryanrajtiwary/Desktop/bachat-plus/bachat-backend/node_modules/.uuid-kESl8T0n',
+128 silly reify   '/Users/aryanrajtiwary/Desktop/bachat-plus/bachat-backend/node_modules/.bin/uuid': '/Users/aryanrajtiwary/Desktop/bachat-plus/bachat-backend/node_modules/.bin/.uuid-Mh3s4Kbw'
+128 silly reify }
+129 silly audit bulk request {
+129 silly audit   '@fastify/busboy': [ '3.2.0' ],
+129 silly audit   '@firebase/app-check-interop-types': [ '0.3.4' ],
+129 silly audit   '@firebase/app-types': [ '0.9.5' ],
+129 silly audit   '@firebase/auth-interop-types': [ '0.2.5' ],
+129 silly audit   '@firebase/component': [ '0.7.3' ],
+129 silly audit   '@firebase/database': [ '1.1.3' ],
+129 silly audit   '@firebase/database-compat': [ '2.1.4' ],
+129 silly audit   '@firebase/database-types': [ '1.0.20' ],
+129 silly audit   '@firebase/logger': [ '0.5.1' ],
+129 silly audit   '@firebase/util': [ '1.15.1' ],
+129 silly audit   '@google-cloud/firestore': [ '8.6.0' ],
+129 silly audit   '@google-cloud/paginator': [ '5.0.2' ],
+129 silly audit   '@google-cloud/projectify': [ '4.0.0' ],
+129 silly audit   '@google-cloud/promisify': [ '4.0.0' ],
+129 silly audit   '@google-cloud/storage': [ '7.21.0' ],
+129 silly audit   'gcp-metadata': [ '6.1.1', '8.1.2' ],
+129 silly audit   'google-auth-library': [ '9.15.1', '10.9.0', '10.5.0' ],
+129 silly audit   'google-logging-utils': [ '0.0.2', '1.1.3' ],
+129 silly audit   '@grpc/grpc-js': [ '1.14.4' ],
+129 silly audit   '@grpc/proto-loader': [ '0.8.1' ],
+129 silly audit   '@isaacs/cliui': [ '8.0.2' ],
+129 silly audit   '@js-sdsl/ordered-map': [ '4.4.2' ],
+129 silly audit   '@mongodb-js/saslprep': [ '1.4.12' ],
+129 silly audit   '@nodable/entities': [ '3.0.0' ],
+129 silly audit   '@opentelemetry/api': [ '1.9.1' ],
+129 silly audit   '@pkgjs/parseargs': [ '0.11.0' ],
+129 silly audit   '@protobufjs/aspromise': [ '1.1.2' ],
+129 silly audit   '@protobufjs/base64': [ '1.1.2' ],
+129 silly audit   '@protobufjs/codegen': [ '2.0.5' ],
+129 silly audit   '@protobufjs/eventemitter': [ '1.1.1' ],
+129 silly audit   '@protobufjs/fetch': [ '1.1.1' ],
+129 silly audit   '@protobufjs/float': [ '1.0.2' ],
+129 silly audit   '@protobufjs/path': [ '1.1.2' ],
+129 silly audit   '@protobufjs/pool': [ '1.1.0' ],
+129 silly audit   '@protobufjs/utf8': [ '1.1.2' ],
+129 silly audit   '@standard-schema/spec': [ '1.1.0' ],
+129 silly audit   '@tootallnate/once': [ '2.0.1' ],
+129 silly audit   '@types/caseless': [ '0.12.5' ],
+129 silly audit   '@types/jsonwebtoken': [ '9.0.10' ],
+129 silly audit   '@types/ms': [ '2.1.0' ],
+129 silly audit   '@types/node': [ '26.1.1' ],
+129 silly audit   '@types/request': [ '2.48.13' ],
+129 silly audit   '@types/tough-cookie': [ '4.0.5' ],
+129 silly audit   '@types/webidl-conversions': [ '7.0.3' ],
+129 silly audit   '@types/whatwg-url': [ '13.0.0' ],
+129 silly audit   'abort-controller': [ '3.0.0' ],
+129 silly audit   accepts: [ '2.0.0' ],
+129 silly audit   'agent-base': [ '7.1.4', '6.0.2' ],
+129 silly audit   'ansi-regex': [ '6.2.2', '5.0.1' ],
+129 silly audit   'ansi-styles': [ '6.2.3', '4.3.0' ],
+129 silly audit   anymatch: [ '3.1.3' ],
+129 silly audit   anynum: [ '1.0.1' ],
+129 silly audit   arrify: [ '2.0.1' ],
+129 silly audit   'async-retry': [ '1.3.3' ],
+129 silly audit   asynckit: [ '0.4.0' ],
+129 silly audit   'balanced-match': [ '1.0.2', '4.0.4' ],
+129 silly audit   'base64-js': [ '1.5.1' ],
+129 silly audit   'bignumber.js': [ '9.3.1' ],
+129 silly audit   'binary-extensions': [ '2.3.0' ],
+129 silly audit   'body-parser': [ '2.3.0' ],
+129 silly audit   'content-type': [ '2.0.0', '1.0.5' ],
+129 silly audit   'brace-expansion': [ '2.1.2', '5.0.7' ],
+129 silly audit   braces: [ '3.0.3' ],
+129 silly audit   bson: [ '7.3.1' ],
+129 silly audit   'buffer-equal-constant-time': [ '1.0.1' ],
+129 silly audit   bytes: [ '3.1.2' ],
+129 silly audit   'call-bind-apply-helpers': [ '1.0.2' ],
+129 silly audit   'call-bound': [ '1.0.4' ],
+129 silly audit   chokidar: [ '3.6.0' ],
+129 silly audit   cliui: [ '8.0.1' ],
+129 silly audit   'emoji-regex': [ '8.0.0', '9.2.2' ],
+129 silly audit   'string-width': [ '4.2.3', '5.1.2' ],
+129 silly audit   'strip-ansi': [ '6.0.1', '7.2.0' ],
+129 silly audit   'wrap-ansi': [ '7.0.0', '8.1.0' ],
+129 silly audit   'color-convert': [ '2.0.1' ],
+129 silly audit   'color-name': [ '1.1.4' ],
+129 silly audit   'combined-stream': [ '1.0.8' ],
+129 silly audit   'content-disposition': [ '1.1.0' ],
+129 silly audit   cookie: [ '0.7.2' ],
+129 silly audit   'cookie-signature': [ '1.2.2', '1.0.6' ],
+129 silly audit   cors: [ '2.8.6' ],
+129 silly audit   'cross-spawn': [ '7.0.6' ],
+129 silly audit   'data-uri-to-buffer': [ '4.0.1' ],
+129 silly audit   debug: [ '4.4.3', '2.6.9' ],
+129 silly audit   'delayed-stream': [ '1.0.0' ],
+129 silly audit   depd: [ '2.0.0' ],
+129 silly audit   dotenv: [ '17.4.2' ],
+129 silly audit   'dunder-proto': [ '1.0.1' ],
+129 silly audit   duplexify: [ '4.1.3' ],
+129 silly audit   eastasianwidth: [ '0.2.0' ],
+129 silly audit   'ecdsa-sig-formatter': [ '1.0.11' ],
+129 silly audit   'ee-first': [ '1.1.1' ],
+129 silly audit   encodeurl: [ '2.0.0' ],
+129 silly audit   'end-of-stream': [ '1.4.5' ],
+129 silly audit   'es-define-property': [ '1.0.1' ],
+129 silly audit   'es-errors': [ '1.3.0' ],
+129 silly audit   'es-object-atoms': [ '1.1.2' ],
+129 silly audit   'es-set-tostringtag': [ '2.1.0' ],
+129 silly audit   escalade: [ '3.2.0' ],
+129 silly audit   'escape-html': [ '1.0.3' ],
+129 silly audit   etag: [ '1.8.1' ],
+129 silly audit   'event-target-shim': [ '5.0.1' ],
+129 silly audit   express: [ '5.2.1' ],
+129 silly audit   extend: [ '3.0.2' ],
+129 silly audit   'fast-deep-equal': [ '3.1.3' ],
+129 silly audit   'fast-xml-builder': [ '1.3.0' ],
+129 silly audit   'fast-xml-parser': [ '5.10.1' ],
+129 silly audit   'faye-websocket': [ '0.11.4' ],
+129 silly audit   'fetch-blob': [ '3.2.0' ],
+129 silly audit   'fill-range': [ '7.1.1' ],
+129 silly audit   finalhandler: [ '2.1.1' ],
+129 silly audit   'firebase-admin': [ '14.2.0' ],
+129 silly audit   'foreground-child': [ '3.3.1' ],
+129 silly audit   'form-data': [ '2.5.6' ],
+129 silly audit   'mime-db': [ '1.52.0', '1.54.0' ],
+129 silly audit   'mime-types': [ '2.1.35', '3.0.2' ],
+129 silly audit   'formdata-polyfill': [ '4.0.10' ],
+129 silly audit   forwarded: [ '0.2.0' ],
+129 silly audit   fresh: [ '2.0.0' ],
+129 silly audit   fsevents: [ '2.3.3' ],
+129 silly audit   'function-bind': [ '1.1.2' ],
+129 silly audit   'functional-red-black-tree': [ '1.0.1' ],
+129 silly audit   gaxios: [ '6.7.1', '7.2.0' ],
+129 silly audit   'node-fetch': [ '3.3.2', '2.7.0' ],
+129 silly audit   'get-caller-file': [ '2.0.5' ],
+129 silly audit   'get-intrinsic': [ '1.3.0' ],
+129 silly audit   'get-proto': [ '1.0.1' ],
+129 silly audit   glob: [ '10.5.0' ],
+129 silly audit   'glob-parent': [ '5.1.2' ],
+129 silly audit   'google-gax': [ '5.0.7' ],
+129 silly audit   gtoken: [ '8.0.0', '7.1.0' ],
+129 silly audit   'http-proxy-agent': [ '7.0.2', '5.0.0' ],
+129 silly audit   'retry-request': [ '8.0.3', '7.0.2' ],
+129 silly audit   'teeny-request': [ '10.1.3', '9.0.0' ],
+129 silly audit   gopd: [ '1.2.0' ],
+129 silly audit   'has-flag': [ '3.0.0' ],
+129 silly audit   'has-symbols': [ '1.1.0' ],
+129 silly audit   'has-tostringtag': [ '1.0.2' ],
+129 silly audit   hasown: [ '2.0.4' ],
+129 silly audit   'html-entities': [ '2.6.0' ],
+129 silly audit   'http-errors': [ '2.0.1' ],
+129 silly audit   'http-parser-js': [ '0.5.10' ],
+129 silly audit   'https-proxy-agent': [ '7.0.6', '5.0.1' ],
+129 silly audit   'iconv-lite': [ '0.7.3' ],
+129 silly audit   'ignore-by-default': [ '1.0.1' ],
+129 silly audit   inherits: [ '2.0.4' ],
+129 silly audit   'ipaddr.js': [ '1.9.1' ],
+129 silly audit   'is-binary-path': [ '2.1.0' ],
+129 silly audit   'is-extglob': [ '2.1.1' ],
+129 silly audit   'is-fullwidth-code-point': [ '3.0.0' ],
+129 silly audit   'is-glob': [ '4.0.3' ],
+129 silly audit   'is-number': [ '7.0.0' ],
+129 silly audit   'is-promise': [ '4.0.0' ],
+129 silly audit   'is-stream': [ '2.0.1' ],
+129 silly audit   'is-unsafe': [ '2.0.0' ],
+129 silly audit   isexe: [ '2.0.0' ],
+129 silly audit   jackspeak: [ '3.4.3' ],
+129 silly audit   jose: [ '6.2.3' ],
+129 silly audit   'json-bigint': [ '1.0.0' ],
+129 silly audit   jsonwebtoken: [ '9.0.3' ],
+129 silly audit   jwa: [ '2.0.1' ],
+129 silly audit   'jwks-rsa': [ '4.1.0' ],
+129 silly audit   jws: [ '4.0.1' ],
+129 silly audit   kareem: [ '3.3.0' ],
+129 silly audit   limiter: [ '1.1.5' ],
+129 silly audit   'lodash.camelcase': [ '4.3.0' ],
+129 silly audit   'lodash.clonedeep': [ '4.5.0' ],
+129 silly audit   'lodash.includes': [ '4.3.0' ],
+129 silly audit   'lodash.isboolean': [ '3.0.3' ],
+129 silly audit   'lodash.isinteger': [ '4.0.4' ],
+129 silly audit   'lodash.isnumber': [ '3.0.3' ],
+129 silly audit   'lodash.isplainobject': [ '4.0.6' ],
+129 silly audit   'lodash.isstring': [ '4.0.1' ],
+129 silly audit   'lodash.once': [ '4.1.1' ],
+129 silly audit   long: [ '5.3.2' ],
+129 silly audit   'lru-cache': [ '11.5.2', '10.4.3' ],
+129 silly audit   'lru-memoizer': [ '3.0.0' ],
+129 silly audit   'math-intrinsics': [ '1.1.0' ],
+129 silly audit   'media-typer': [ '1.1.0' ],
+129 silly audit   'memory-pager': [ '1.5.0' ],
+129 silly audit   'merge-descriptors': [ '2.0.0' ],
+129 silly audit   mime: [ '3.0.0' ],
+129 silly audit   minimatch: [ '9.0.9', '10.2.5' ],
+129 silly audit   minipass: [ '7.1.3' ],
+129 silly audit   'mongodb-connection-string-url': [ '7.0.2' ],
+129 silly audit   tr46: [ '5.1.1', '0.0.3' ],
+129 silly audit   'webidl-conversions': [ '7.0.0', '3.0.1' ],
+129 silly audit   'whatwg-url': [ '14.2.0', '5.0.0' ],
+129 silly audit   mongoose: [ '9.7.4' ],
+129 silly audit   mongodb: [ '7.2.0' ],
+129 silly audit   mpath: [ '0.9.0' ],
+129 silly audit   mquery: [ '6.0.0' ],
+129 silly audit   ms: [ '2.1.3', '2.0.0' ],
+129 silly audit   negotiator: [ '1.0.0', '0.6.4' ],
+129 silly audit   'node-domexception': [ '1.0.0' ],
+129 silly audit   nodemon: [ '3.1.14' ],
+129 silly audit   'normalize-path': [ '3.0.0' ],
+129 silly audit   'object-assign': [ '4.1.1' ],
+129 silly audit   'object-hash': [ '3.0.0' ],
+129 silly audit   'object-inspect': [ '1.13.4' ],
+129 silly audit   'on-finished': [ '2.4.1' ],
+129 silly audit   once: [ '1.4.0' ],
+129 silly audit   'p-limit': [ '3.1.0' ],
+129 silly audit   'package-json-from-dist': [ '1.0.1' ],
+129 silly audit   parseurl: [ '1.3.3' ],
+129 silly audit   'path-expression-matcher': [ '1.6.2' ],
+129 silly audit   'path-key': [ '3.1.1' ],
+129 silly audit   'path-scurry': [ '1.11.1' ],
+129 silly audit   'path-to-regexp': [ '8.4.2' ],
+129 silly audit   picomatch: [ '2.3.2' ],
+129 silly audit   'proto3-json-serializer': [ '3.0.4' ],
+129 silly audit   protobufjs: [ '7.6.5' ],
+129 silly audit   'proxy-addr': [ '2.0.7' ],
+129 silly audit   'pstree.remy': [ '1.1.8' ],
+129 silly audit   punycode: [ '2.3.1' ],
+129 silly audit   qs: [ '6.15.3' ],
+129 silly audit   'range-parser': [ '1.3.0' ],
+129 silly audit   'raw-body': [ '3.0.2' ],
+129 silly audit   'readable-stream': [ '3.6.2' ],
+129 silly audit   readdirp: [ '3.6.0' ],
+129 silly audit   'require-directory': [ '2.1.1' ],
+129 silly audit   retry: [ '0.13.1' ],
+129 silly audit   rimraf: [ '5.0.10' ],
+129 silly audit   router: [ '2.2.0' ],
+129 silly audit   'safe-buffer': [ '5.2.1', '5.1.2' ],
+129 silly audit   'safer-buffer': [ '2.1.2' ],
+129 silly audit   semver: [ '7.8.5' ],
+129 silly audit   send: [ '1.2.1' ],
+129 silly audit   'serve-static': [ '2.2.1' ],
+129 silly audit   setprototypeof: [ '1.2.0' ],
+129 silly audit   'shebang-command': [ '2.0.0' ],
+129 silly audit   'shebang-regex': [ '3.0.0' ],
+129 silly audit   'side-channel': [ '1.1.1' ],
+129 silly audit   'side-channel-list': [ '1.0.1' ],
+129 silly audit   'side-channel-map': [ '1.0.1' ],
+129 silly audit   'side-channel-weakmap': [ '1.0.2' ],
+129 silly audit   sift: [ '17.1.3' ],
+129 silly audit   'signal-exit': [ '4.1.0' ],
+129 silly audit   'simple-update-notifier': [ '2.0.0' ],
+129 silly audit   'sparse-bitfield': [ '3.0.3' ],
+129 silly audit   statuses: [ '2.0.2' ],
+129 silly audit   'stream-events': [ '1.0.5' ],
+129 silly audit   'stream-shift': [ '1.0.3' ],
+129 silly audit   string_decoder: [ '1.3.0' ],
+129 silly audit   strnum: [ '2.4.1' ],
+129 silly audit   stubs: [ '3.0.0' ],
+129 silly audit   'supports-color': [ '5.5.0' ],
+129 silly audit   'to-regex-range': [ '5.0.1' ],
+129 silly audit   toidentifier: [ '1.0.1' ],
+129 silly audit   touch: [ '3.1.1' ],
+129 silly audit   tslib: [ '2.8.1' ],
+129 silly audit   'type-is': [ '2.1.0' ],
+129 silly audit   undefsafe: [ '2.0.5' ],
+129 silly audit   'undici-types': [ '8.3.0' ],
+129 silly audit   unpipe: [ '1.0.0' ],
+129 silly audit   'util-deprecate': [ '1.0.2' ],
+129 silly audit   vary: [ '1.1.2' ],
+129 silly audit   'web-streams-polyfill': [ '3.3.3' ],
+129 silly audit   'websocket-driver': [ '0.7.5' ],
+129 silly audit   'websocket-extensions': [ '0.1.4' ],
+129 silly audit   which: [ '2.0.2' ],
+129 silly audit   wrappy: [ '1.0.2' ],
+129 silly audit   'xml-naming': [ '0.3.0' ],
+129 silly audit   y18n: [ '5.0.8' ],
+129 silly audit   yargs: [ '17.7.3' ],
+129 silly audit   'yargs-parser': [ '21.1.1' ],
+129 silly audit   'yocto-queue': [ '0.1.0' ],
+129 silly audit   compression: [ '1.8.1' ],
+129 silly audit   'cookie-parser': [ '1.4.7' ],
+129 silly audit   'express-rate-limit': [ '8.6.0' ],
+129 silly audit   helmet: [ '8.3.0' ],
+129 silly audit   morgan: [ '1.11.0' ],
+129 silly audit   uuid: [ '14.0.1', '9.0.1' ],
+129 silly audit   compressible: [ '2.0.18' ],
+129 silly audit   'on-headers': [ '1.1.0' ],
+129 silly audit   'ip-address': [ '10.2.0' ],
+129 silly audit   'basic-auth': [ '2.0.1' ]
+129 silly audit }
+130 http cache ip-address@https://registry.npmjs.org/ip-address/-/ip-address-10.2.0.tgz 0ms (cache hit)
+131 http cache basic-auth@https://registry.npmjs.org/basic-auth/-/basic-auth-2.0.1.tgz 0ms (cache hit)
+132 http cache on-headers@https://registry.npmjs.org/on-headers/-/on-headers-1.1.0.tgz 0ms (cache hit)
+133 http cache compressible@https://registry.npmjs.org/compressible/-/compressible-2.0.18.tgz 0ms (cache hit)
+134 http cache express-rate-limit@https://registry.npmjs.org/express-rate-limit/-/express-rate-limit-8.6.0.tgz 0ms (cache hit)
+135 http cache morgan@https://registry.npmjs.org/morgan/-/morgan-1.11.0.tgz 0ms (cache hit)
+136 http cache cookie-parser@https://registry.npmjs.org/cookie-parser/-/cookie-parser-1.4.7.tgz 0ms (cache hit)
+137 http cache compression@https://registry.npmjs.org/compression/-/compression-1.8.1.tgz 0ms (cache hit)
+138 http cache fsevents@https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz 0ms (cache hit)
+139 http cache uuid@https://registry.npmjs.org/uuid/-/uuid-14.0.1.tgz 0ms (cache hit)
+140 http cache safe-buffer@https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz 0ms (cache hit)
+141 http cache ms@https://registry.npmjs.org/ms/-/ms-2.0.0.tgz 0ms (cache hit)
+142 http cache cookie-signature@https://registry.npmjs.org/cookie-signature/-/cookie-signature-1.0.6.tgz 0ms (cache hit)
+143 http cache debug@https://registry.npmjs.org/debug/-/debug-2.6.9.tgz 0ms (cache hit)
+144 http cache negotiator@https://registry.npmjs.org/negotiator/-/negotiator-0.6.4.tgz 0ms (cache hit)
+145 http cache debug@https://registry.npmjs.org/debug/-/debug-2.6.9.tgz 0ms (cache hit)
+146 http cache ms@https://registry.npmjs.org/ms/-/ms-2.0.0.tgz 0ms (cache hit)
+147 http cache helmet@https://registry.npmjs.org/helmet/-/helmet-8.3.0.tgz 0ms (cache hit)
+148 http cache uuid@https://registry.npmjs.org/uuid/-/uuid-9.0.1.tgz 0ms (cache hit)
+149 http cache uuid@https://registry.npmjs.org/uuid/-/uuid-9.0.1.tgz 0ms (cache hit)
+150 silly tarball no local data for ip-address@https://registry.npmjs.org/ip-address/-/ip-address-10.2.0.tgz. Extracting by manifest.
+151 silly tarball no local data for basic-auth@https://registry.npmjs.org/basic-auth/-/basic-auth-2.0.1.tgz. Extracting by manifest.
+152 silly tarball no local data for on-headers@https://registry.npmjs.org/on-headers/-/on-headers-1.1.0.tgz. Extracting by manifest.
+153 silly tarball no local data for compressible@https://registry.npmjs.org/compressible/-/compressible-2.0.18.tgz. Extracting by manifest.
+154 silly tarball no local data for express-rate-limit@https://registry.npmjs.org/express-rate-limit/-/express-rate-limit-8.6.0.tgz. Extracting by manifest.
+155 silly tarball no local data for morgan@https://registry.npmjs.org/morgan/-/morgan-1.11.0.tgz. Extracting by manifest.
+156 silly tarball no local data for cookie-parser@https://registry.npmjs.org/cookie-parser/-/cookie-parser-1.4.7.tgz. Extracting by manifest.
+157 silly tarball no local data for compression@https://registry.npmjs.org/compression/-/compression-1.8.1.tgz. Extracting by manifest.
+158 silly tarball no local data for fsevents@https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz. Extracting by manifest.
+159 silly tarball no local data for uuid@https://registry.npmjs.org/uuid/-/uuid-14.0.1.tgz. Extracting by manifest.
+160 silly tarball no local data for safe-buffer@https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz. Extracting by manifest.
+161 silly tarball no local data for ms@https://registry.npmjs.org/ms/-/ms-2.0.0.tgz. Extracting by manifest.
+162 silly tarball no local data for cookie-signature@https://registry.npmjs.org/cookie-signature/-/cookie-signature-1.0.6.tgz. Extracting by manifest.
+163 silly tarball no local data for debug@https://registry.npmjs.org/debug/-/debug-2.6.9.tgz. Extracting by manifest.
+164 silly tarball no local data for negotiator@https://registry.npmjs.org/negotiator/-/negotiator-0.6.4.tgz. Extracting by manifest.
+165 silly tarball no local data for debug@https://registry.npmjs.org/debug/-/debug-2.6.9.tgz. Extracting by manifest.
+166 silly tarball no local data for ms@https://registry.npmjs.org/ms/-/ms-2.0.0.tgz. Extracting by manifest.
+167 silly tarball no local data for helmet@https://registry.npmjs.org/helmet/-/helmet-8.3.0.tgz. Extracting by manifest.
+168 silly tarball no local data for uuid@https://registry.npmjs.org/uuid/-/uuid-9.0.1.tgz. Extracting by manifest.
+169 silly tarball no local data for uuid@https://registry.npmjs.org/uuid/-/uuid-9.0.1.tgz. Extracting by manifest.
+170 http fetch GET 200 https://registry.npmjs.org/on-headers/-/on-headers-1.1.0.tgz 86ms (cache miss)
+171 http fetch GET 200 https://registry.npmjs.org/basic-auth/-/basic-auth-2.0.1.tgz 87ms (cache miss)
+172 http fetch GET 200 https://registry.npmjs.org/compressible/-/compressible-2.0.18.tgz 97ms (cache miss)
+173 http fetch GET 200 https://registry.npmjs.org/morgan/-/morgan-1.11.0.tgz 113ms (cache miss)
+174 http fetch GET 200 https://registry.npmjs.org/cookie-parser/-/cookie-parser-1.4.7.tgz 125ms (cache miss)
+175 http fetch GET 200 https://registry.npmjs.org/express-rate-limit/-/express-rate-limit-8.6.0.tgz 127ms (cache miss)
+176 http fetch GET 200 https://registry.npmjs.org/compression/-/compression-1.8.1.tgz 159ms (cache miss)
+177 http fetch GET 200 https://registry.npmjs.org/ip-address/-/ip-address-10.2.0.tgz 193ms (cache miss)
+178 http fetch GET 200 https://registry.npmjs.org/ms/-/ms-2.0.0.tgz 219ms (cache miss)
+179 http fetch GET 200 https://registry.npmjs.org/negotiator/-/negotiator-0.6.4.tgz 227ms (cache miss)
+180 http fetch GET 200 https://registry.npmjs.org/debug/-/debug-2.6.9.tgz 240ms (cache miss)
+181 http fetch GET 200 https://registry.npmjs.org/uuid/-/uuid-9.0.1.tgz 269ms (cache miss)
+182 warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+183 http fetch GET 200 https://registry.npmjs.org/helmet/-/helmet-8.3.0.tgz 270ms (cache miss)
+184 http fetch GET 200 https://registry.npmjs.org/uuid/-/uuid-9.0.1.tgz 284ms (cache miss)
+185 warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+186 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 373ms
+187 silly audit report {
+187 silly audit report   uuid: [
+187 silly audit report     {
+187 silly audit report       id: 1119441,
+187 silly audit report       url: 'https://github.com/advisories/GHSA-w5hq-g745-h8pq',
+187 silly audit report       title: 'uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided',
+187 silly audit report       severity: 'moderate',
+187 silly audit report       vulnerable_versions: '<11.1.1',
+187 silly audit report       cwe: [Array],
+187 silly audit report       cvss: [Object]
+187 silly audit report     }
+187 silly audit report   ]
+187 silly audit report }
+188 silly packumentCache corgi:https://registry.npmjs.org/uuid cache-miss
+189 http fetch GET 200 https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz 372ms (cache miss)
+190 http fetch GET 200 https://registry.npmjs.org/cookie-signature/-/cookie-signature-1.0.6.tgz 372ms (cache miss)
+191 http fetch GET 200 https://registry.npmjs.org/ms/-/ms-2.0.0.tgz 378ms (cache miss)
+192 http fetch GET 200 https://registry.npmjs.org/uuid/-/uuid-14.0.1.tgz 390ms (cache miss)
+193 http fetch GET 200 https://registry.npmjs.org/debug/-/debug-2.6.9.tgz 394ms (cache miss)
+194 http fetch GET 200 https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz 400ms (cache miss)
+195 http fetch GET 200 https://registry.npmjs.org/uuid 92ms (cache miss)
+196 silly packumentCache corgi:https://registry.npmjs.org/uuid set size:undefined disposed:false
+197 silly packumentCache corgi:https://registry.npmjs.org/gaxios cache-miss
+198 silly packumentCache corgi:https://registry.npmjs.org/teeny-request cache-miss
+199 http fetch GET 200 https://registry.npmjs.org/gaxios 110ms (cache miss)
+200 silly packumentCache corgi:https://registry.npmjs.org/gaxios set size:undefined disposed:false
+201 http fetch GET 200 https://registry.npmjs.org/teeny-request 118ms (cache miss)
+202 silly packumentCache corgi:https://registry.npmjs.org/teeny-request set size:undefined disposed:false
+203 silly packumentCache corgi:https://registry.npmjs.org/@google-cloud%2fstorage cache-miss
+204 silly packumentCache corgi:https://registry.npmjs.org/gcp-metadata cache-miss
+205 silly packumentCache corgi:https://registry.npmjs.org/google-auth-library cache-miss
+206 silly packumentCache corgi:https://registry.npmjs.org/gtoken cache-miss
+207 http fetch GET 200 https://registry.npmjs.org/gtoken 108ms (cache miss)
+208 silly packumentCache corgi:https://registry.npmjs.org/gtoken set size:undefined disposed:false
+209 http fetch GET 200 https://registry.npmjs.org/gcp-metadata 111ms (cache miss)
+210 silly packumentCache corgi:https://registry.npmjs.org/gcp-metadata set size:undefined disposed:false
+211 http fetch GET 200 https://registry.npmjs.org/google-auth-library 174ms (cache miss)
+212 silly packumentCache corgi:https://registry.npmjs.org/google-auth-library set size:undefined disposed:false
+213 http fetch GET 200 https://registry.npmjs.org/@google-cloud%2fstorage 223ms (cache miss)
+214 silly packumentCache corgi:https://registry.npmjs.org/@google-cloud%2fstorage set size:undefined disposed:false
+215 silly packumentCache corgi:https://registry.npmjs.org/retry-request cache-miss
+216 http fetch GET 200 https://registry.npmjs.org/retry-request 85ms (cache miss)
+217 silly packumentCache corgi:https://registry.npmjs.org/retry-request set size:undefined disposed:false
+218 silly packumentCache corgi:https://registry.npmjs.org/firebase-admin cache-miss
+219 http fetch GET 200 https://registry.npmjs.org/firebase-admin 156ms (cache miss)
+220 silly packumentCache corgi:https://registry.npmjs.org/firebase-admin set size:undefined disposed:false
+221 silly ADD node_modules/basic-auth
+222 silly ADD node_modules/basic-auth/node_modules/safe-buffer
+223 silly ADD node_modules/ip-address
+224 silly ADD node_modules/on-headers
+225 silly ADD node_modules/compressible
+226 silly ADD node_modules/morgan
+227 silly ADD node_modules/morgan/node_modules/ms
+228 silly ADD node_modules/morgan/node_modules/debug
+229 silly ADD node_modules/helmet
+230 silly ADD node_modules/express-rate-limit
+231 silly ADD node_modules/cookie-parser
+232 silly ADD node_modules/cookie-parser/node_modules/cookie-signature
+233 silly ADD node_modules/compression
+234 silly ADD node_modules/compression/node_modules/ms
+235 silly ADD node_modules/compression/node_modules/negotiator
+236 silly ADD node_modules/compression/node_modules/debug
+237 silly ADD node_modules/fsevents
+238 silly CHANGE node_modules/uuid
+239 silly ADD node_modules/teeny-request/node_modules/uuid
+240 silly ADD node_modules/gaxios/node_modules/uuid
+241 warn allow-scripts 3 packages have install scripts not yet covered by allowScripts:
+241 warn allow-scripts   @firebase/util@1.15.1 (install: (install scripts present))
+241 warn allow-scripts   fsevents@2.3.3 (install: (install scripts present))
+241 warn allow-scripts   protobufjs@7.6.5 (install: (install scripts present))
+241 warn allow-scripts
+241 warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
+242 verbose cwd /Users/aryanrajtiwary/Desktop/bachat-plus/bachat-backend
+243 verbose os Darwin 25.5.0
+244 verbose node v24.18.0
+245 verbose npm  v11.16.0
+246 notice
+246 notice New major version of npm available! 11.16.0 -> 12.0.1
+246 notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.1
+246 notice To update run: npm install -g npm@12.0.1
+246 notice  { force: true, Symbol(proc-log.meta): true }
+247 verbose exit 0
+248 info ok
