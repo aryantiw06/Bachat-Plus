@@ -44,22 +44,30 @@ const runTests = async () => {
       });
       logger.info(`Response status: ${sessionBadToken.status}`, sessionBadToken.data);
 
-      // Test 5: Auth me without token (expect 401)
+      // Test 5: Auth session with mock token (works only when ENABLE_MOCK_AUTH=true)
+      logger.info('Testing POST /api/v1/auth/session (mock-token) ...');
+      const sessionMockToken = await request('/api/v1/auth/session', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer mock-token' },
+      });
+      logger.info(`Response status: ${sessionMockToken.status}`, sessionMockToken.data);
+
+      // Test 6: Auth me without token (expect 401)
       logger.info('Testing GET /api/v1/auth/me (no token) ...');
       const meNoToken = await request('/api/v1/auth/me');
       logger.info(`Response status: ${meNoToken.status}`, meNoToken.data);
 
-      // Test 6: Auth logout without token (expect 401)
+      // Test 7: Auth logout without token (expect 401)
       logger.info('Testing POST /api/v1/auth/logout (no token) ...');
       const logoutNoToken = await request('/api/v1/auth/logout', { method: 'POST' });
       logger.info(`Response status: ${logoutNoToken.status}`, logoutNoToken.data);
 
-      // Test 7: Placeholder Route (Profile)
+      // Test 8: Placeholder Route (Profile)
       logger.info('Testing GET /api/v1/profile ...');
       const profileRes = await request('/api/v1/profile');
       logger.info(`Response status: ${profileRes.status}`, profileRes.data);
 
-      // Test 8: 404 handler
+      // Test 9: 404 handler
       logger.info('Testing GET /api/v1/invalid-route ...');
       const notFoundRes = await request('/api/v1/invalid-route');
       logger.info(`Response status: ${notFoundRes.status}`, notFoundRes.data);

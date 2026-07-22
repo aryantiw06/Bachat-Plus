@@ -1,7 +1,10 @@
 // ============================================
 // firebase.js — Firebase Admin SDK Initialization
 // ============================================
-import admin from 'firebase-admin';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
+import * as admin from 'firebase-admin';
 import env from './env.js';
 import logger from './logger.js';
 
@@ -9,41 +12,43 @@ let db;
 let auth;
 let firebaseInitialized = false;
 
-const initFirebase = () => {
+const MOCK_TOKEN = 'mock-token';
+
+const normalizePrivateKey = (privateKey) => privateKey.replace(/\\n/g, '\n');
+
+const validateFirebaseCredentials = () => {
   const { projectId, clientEmail, privateKey } = env.firebase;
+  const missing = [];
 
-  if (!projectId || !clientEmail || !privateKey) {
-    logger.warn('Firebase environment variables are incomplete. Bootstrapping with Mock Database services.');
-    return setupMocks();
+  if (!projectId) missing.push('FIREBASE_PROJECT_ID');
+  if (!clientEmail) missing.push('FIREBASE_CLIENT_EMAIL');
+  if (!privateKey) missing.push('FIREBASE_PRIVATE_KEY');
+
+  return {
+    valid: missing.length === 0,
+    missing,
+    projectId,
+    clientEmail,
+    privateKey,
+  };
+};
+
+const createAuthError = (message, code = 'auth/argument-error') => {
+  const error = new Error(message);
+  error.code = code;
+  return error;
+};
+
+const createMockVerifyIdToken = () => async (token) => {
+  if (token !== MOCK_TOKEN) {
+    throw createAuthError('Firebase ID token has invalid signature.');
   }
 
-  try {
-    const isDummyKey = !privateKey.includes('-----BEGIN PRIVATE KEY-----');
-
-    if (isDummyKey) {
-      logger.info('Dummy private key detected. Initializing Firebase Admin SDK in Local Emulator/Mock mode.');
-      // Initialize with projectId only for emulator/offline compatibility
-      admin.initializeApp({
-        projectId: projectId,
-      });
-    } else {
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId,
-          clientEmail,
-          privateKey,
-        }),
-      });
-      logger.info('Firebase Admin SDK initialized successfully with Service Account credentials.');
-    }
-
-    db = admin.firestore();
-    auth = admin.auth();
-    firebaseInitialized = true;
-  } catch (error) {
-    logger.error('Failed to initialize Firebase Admin SDK. Falling back to Mock Database service.', error);
-    setupMocks();
-  }
+  return {
+    uid: 'mock-uid-demo',
+    email: 'demo@bachat.com',
+    name: 'Mock User',
+  };
 };
 
 const setupMocks = () => {
@@ -56,13 +61,88 @@ const setupMocks = () => {
       }),
     }),
   };
+
   auth = {
-    verifyIdToken: async () => ({ uid: 'mock-uid-demo' }),
+    verifyIdToken: createMockVerifyIdToken(),
+    revokeRefreshTokens: async () => ({ success: true }),
   };
+
+  firebaseInitialized = false;
+
+  logger.info('Firebase running in mock mode.');
+};
+
+const setupUnavailable = () => {
+  const authUnavailable = () => {
+    throw createAuthError('Firebase Auth is not initialized.', 'auth/internal-error');
+  };
+
+  auth = {
+    verifyIdToken: authUnavailable,
+    revokeRefreshTokens: authUnavailable,
+  };
+
+  db = {
+    collection: () => {
+      throw new Error('Firestore is not initialized');
+    },
+  };
+
   firebaseInitialized = false;
 };
 
-// Initialize on load
+const initFirebase = () => {
+  if (env.enableMockAuth) {
+    logger.info('Mock authentication enabled.');
+  } else {
+    logger.info('Mock authentication disabled.');
+  }
+
+  const credentials = validateFirebaseCredentials();
+
+  if (!credentials.valid) {
+    logger.warn('Firebase credentials missing.', { missing: credentials.missing });
+
+    if (env.enableMockAuth) {
+      setupMocks();
+      return;
+    }
+
+    logger.error('Firebase initialization failed.');
+    setupUnavailable();
+    return;
+  }
+
+  try {
+    const { projectId, clientEmail, privateKey } = credentials;
+
+    if (getApps().length === 0) {
+      initializeApp({
+        credential: cert({
+          projectId,
+          clientEmail,
+          privateKey: normalizePrivateKey(privateKey),
+        }),
+      });
+    }
+
+    db = getFirestore();
+    auth = getAuth();
+    firebaseInitialized = true;
+
+    logger.info('Firebase initialized successfully.');
+  } catch (error) {
+    logger.error('Firebase initialization failed.', error);
+
+    if (env.enableMockAuth) {
+      setupMocks();
+      return;
+    }
+
+    setupUnavailable();
+  }
+};
+
 initFirebase();
 
 export { admin, db, auth, firebaseInitialized };
