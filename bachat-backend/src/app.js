@@ -139,6 +139,7 @@ app.use(`${apiPrefix}/notifications`, notificationRoutes); // Plural alias
 app.use(`${apiPrefix}/profile`, profileRoutes);
 app.use(`${apiPrefix}/settings`, settingsRoutes);
 app.use(`${apiPrefix}/investments`, investmentRoutes);
+app.use(`${apiPrefix}/investment`, investmentRoutes); // Singular alias
 
 // ============================================
 // ERROR HANDLING MIDDLEWARE

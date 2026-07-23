@@ -1,18 +1,11 @@
 // ============================================
-// Investments.jsx — Premium Investment Discovery Page
+// Investments.jsx — Production-Quality FinTech Investment Experience
 // ============================================
-// Presentation-only. All wallet data comes from WalletContext.
-// Investment products, recommendations, and portfolio data are
-// structured so a real backend API can replace them later
-// without changing the UI components.
-// ============================================
-
-import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   TrendingUp,
   PiggyBank,
-  Target,
   Sparkles,
   BarChart3,
   ArrowRight,
@@ -21,14 +14,17 @@ import {
   Landmark,
   Bitcoin,
   LineChart,
-  BookOpen,
-  Calculator,
-  Clock,
-  Zap,
-  ChevronRight,
-  Info,
   Wallet,
-  Eye,
+  PlusCircle,
+  CheckCircle2,
+  AlertCircle,
+  X,
+  PieChart,
+  ArrowUpRight,
+  DollarSign,
+  Briefcase,
+  Layers,
+  Info,
 } from 'lucide-react';
 import { useWallet } from '../contexts/WalletContext.jsx';
 import PageHeader from '../components/ui/PageHeader.jsx';
@@ -37,11 +33,22 @@ import Button from '../components/ui/Button.jsx';
 import Badge from '../components/ui/Badge.jsx';
 import AnimatedCounter from '../components/ui/AnimatedCounter.jsx';
 import PageLoader from '../components/ui/Loader.jsx';
+import investmentService, { PRODUCTS } from '../services/investment.service.js';
 
-// ---- Animation Variants ----
+// Icon Map for dynamic lookup
+const ICON_MAP = {
+  Gem: Gem,
+  TrendingUp: TrendingUp,
+  BarChart3: BarChart3,
+  LineChart: LineChart,
+  Bitcoin: Bitcoin,
+  Landmark: Landmark,
+};
+
+// Animation Variants
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.07 } },
+  visible: { transition: { staggerChildren: 0.06 } },
 };
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -49,218 +56,35 @@ const fadeUp = {
 };
 
 // ============================================
-// DATA — Structured for future API replacement
-// ============================================
-
-const INVESTMENT_PRODUCTS = [
-  {
-    id: 'nifty50',
-    name: 'Nifty 50 ETF',
-    icon: TrendingUp,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-100',
-    description: 'Track India\'s top 50 companies with one investment.',
-    risk: 'Moderate',
-    riskColor: 'text-amber-600',
-    expectedReturn: '12–15%',
-    minInvestment: 500,
-    recommendedFor: 'Long-term wealth building',
-  },
-  {
-    id: 'gold',
-    name: 'Gold ETF',
-    icon: Gem,
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-100',
-    description: 'Digital gold that protects against inflation.',
-    risk: 'Low',
-    riskColor: 'text-green-600',
-    expectedReturn: '8–10%',
-    minInvestment: 100,
-    recommendedFor: 'Safe-haven diversification',
-  },
-  {
-    id: 'indexfund',
-    name: 'Index Mutual Fund',
-    icon: BarChart3,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-100',
-    description: 'Professionally managed fund mirroring market indices.',
-    risk: 'Moderate',
-    riskColor: 'text-amber-600',
-    expectedReturn: '10–14%',
-    minInvestment: 500,
-    recommendedFor: 'Passive investors',
-  },
-  {
-    id: 'fd',
-    name: 'Fixed Deposit',
-    icon: Landmark,
-    color: 'text-teal',
-    bgColor: 'bg-teal/5',
-    borderColor: 'border-teal/20',
-    description: 'Guaranteed returns with zero market risk.',
-    risk: 'Very Low',
-    riskColor: 'text-green-600',
-    expectedReturn: '6–7.5%',
-    minInvestment: 1000,
-    recommendedFor: 'Risk-averse savers',
-  },
-  {
-    id: 'stocks',
-    name: 'Stocks',
-    icon: LineChart,
-    color: 'text-navy',
-    bgColor: 'bg-navy/5',
-    borderColor: 'border-navy/10',
-    description: 'Direct equity for maximum growth potential.',
-    risk: 'High',
-    riskColor: 'text-red-500',
-    expectedReturn: '15–25%',
-    minInvestment: 1000,
-    recommendedFor: 'Experienced investors',
-  },
-  {
-    id: 'crypto',
-    name: 'Crypto',
-    icon: Bitcoin,
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-100',
-    description: 'Experimental allocation for high-risk appetite.',
-    risk: 'Very High',
-    riskColor: 'text-red-600',
-    expectedReturn: '20–100%+',
-    minInvestment: 500,
-    recommendedFor: 'High-risk explorers',
-    badge: 'Experimental',
-  },
-];
-
-const PORTFOLIO_ALLOCATION = [
-  { label: 'ETF', pct: 40, color: '#3b82f6' },
-  { label: 'Gold', pct: 25, color: '#f59e0b' },
-  { label: 'Mutual Fund', pct: 20, color: '#8b5cf6' },
-  { label: 'FD', pct: 10, color: '#14b8a6' },
-  { label: 'Cash', pct: 5, color: '#94a3b8' },
-];
-
-const EDUCATION_CARDS = [
-  {
-    title: 'Why Round-up Investing Works',
-    body: 'Small spare change adds up fast. ₹5–₹9 per payment compounds into real wealth over time — without changing your spending habits.',
-    icon: PiggyBank,
-  },
-  {
-    title: 'Power of Compounding',
-    body: 'At 12% annual return, ₹100/month becomes ₹23,000+ in 10 years. The earlier you start, the harder your money works for you.',
-    icon: TrendingUp,
-  },
-  {
-    title: 'Risk vs Return',
-    body: 'Higher potential returns come with higher risk. Diversifying across assets reduces your overall risk while maintaining growth.',
-    icon: Shield,
-  },
-  {
-    title: 'Dollar Cost Averaging',
-    body: 'Investing small amounts regularly (like round-ups) means you buy more when prices are low and less when high — smoothing out volatility.',
-    icon: BarChart3,
-  },
-];
-
-// ---- AI Recommendation Engine ----
-function getRecommendation(walletBalance) {
-  if (walletBalance < 100) {
-    return {
-      title: 'Keep Saving',
-      subtitle: 'Build your wallet to ₹100 to unlock your first investment.',
-      product: null,
-      risk: '—',
-      expectedReturn: '—',
-      why: 'A small buffer ensures you can invest meaningfully. Keep making payments and watch your wallet grow!',
-      horizon: '—',
-    };
-  }
-  if (walletBalance < 500) {
-    return {
-      title: 'Gold ETF',
-      subtitle: 'A safe starting point for your first investment.',
-      product: 'gold',
-      risk: 'Low',
-      expectedReturn: '8–10% annually',
-      why: 'Gold is a stable store of value. With your current savings, a small Gold ETF allocation lets you start building wealth safely.',
-      horizon: '1–3 years',
-    };
-  }
-  if (walletBalance < 1500) {
-    return {
-      title: 'Nifty 50 ETF',
-      subtitle: 'Ride India\'s growth with top 50 companies.',
-      product: 'nifty50',
-      risk: 'Moderate',
-      expectedReturn: '12–15% annually',
-      why: 'Your wallet is now large enough for a diversified equity ETF. The Nifty 50 gives you broad market exposure in a single investment.',
-      horizon: '3–5 years',
-    };
-  }
-  if (walletBalance < 5000) {
-    return {
-      title: 'Index Mutual Fund',
-      subtitle: 'Professional management meets passive investing.',
-      product: 'indexfund',
-      risk: 'Moderate',
-      expectedReturn: '10–14% annually',
-      why: 'With ₹1,500+ saved, a professionally managed index fund gives you excellent diversification and compounding potential.',
-      horizon: '3–7 years',
-    };
-  }
-  return {
-    title: 'Diversified Portfolio',
-    subtitle: 'You\'ve earned the right to diversify across asset classes.',
-    product: null,
-    risk: 'Balanced',
-    expectedReturn: '10–18% annually',
-    why: 'Your savings are significant. Spreading across ETFs, Gold, Mutual Funds, and FDs gives you the best risk-adjusted returns.',
-    horizon: '5–10 years',
-  };
-}
-
-// ============================================
 // Donut Chart Component (SVG)
 // ============================================
-function DonutChart({ data, size = 180 }) {
-  const strokeWidth = 28;
+function DonutChart({ data = [], size = 180 }) {
+  const strokeWidth = 26;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   let cumulativeOffset = 0;
 
+  const validData = data.length > 0 ? data : [{ label: 'Cash', pct: 100, color: '#94a3b8' }];
+
   return (
     <svg width={size} height={size} className="-rotate-90" aria-label="Portfolio allocation chart">
-      {data.map((segment) => {
+      {validData.map((segment) => {
         const segmentLength = (segment.pct / 100) * circumference;
-        const offset = circumference - segmentLength;
         const rotation = (cumulativeOffset / circumference) * 360;
         cumulativeOffset += segmentLength;
 
         return (
-          <motion.circle
+          <circle
             key={segment.label}
             cx={size / 2}
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke={segment.color}
+            stroke={segment.color || '#3b82f6'}
             strokeWidth={strokeWidth}
             strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
             strokeDashoffset={0}
-            strokeLinecap="butt"
             style={{ transform: `rotate(${rotation}deg)`, transformOrigin: '50% 50%' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
           />
         );
       })}
@@ -268,412 +92,428 @@ function DonutChart({ data, size = 180 }) {
   );
 }
 
-// ============================================
-// Main Page Component
-// ============================================
 export default function Investments() {
   const {
     investmentWallet,
-    savingsGoal,
-    goalName,
-    goalProgress,
-    totalTransactions,
-    loadingWallet,
+    totalRoundups,
+    manualDeposits,
+    portfolio,
     investments,
+    loadingWallet,
+    addMoney,
     invest,
   } = useWallet();
 
-  // ---- Investment Simulator State ----
-  const [simAmount, setSimAmount] = useState('');
-  const [investingProductId, setInvestingProductId] = useState(null);
-  const [investmentFeedback, setInvestmentFeedback] = useState(null);
-  const simValue = parseFloat(simAmount) || 0;
-  const simCapped = Math.min(simValue, investmentWallet);
-  const simRemaining = Math.max(investmentWallet - simCapped, 0);
-  const simAnnualReturn = Math.round(simCapped * 0.12);
-  const simFiveYear = Math.round(simCapped * Math.pow(1.12, 5));
+  // ---- State Modals & Selection ----
+  const [isAddMoneyOpen, setIsAddMoneyOpen] = useState(false);
+  const [addAmount, setAddAmount] = useState('1000');
+  const [isAddingMoney, setIsAddingMoney] = useState(false);
 
-  // ---- AI Recommendation ----
-  const recommendation = useMemo(
-    () => getRecommendation(investmentWallet),
-    [investmentWallet]
-  );
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [investAmount, setInvestAmount] = useState('');
+  const [isInvesting, setIsInvesting] = useState(false);
 
-  async function handleInvest(product) {
-    if (investmentWallet < product.minInvestment || investingProductId) return;
+  const [feedback, setFeedback] = useState(null);
 
-    setInvestmentFeedback(null);
-    setInvestingProductId(product.id);
-    const result = await invest({
-      amount: product.minInvestment,
-      investmentType: product.id,
-      riskLevel: product.risk,
-    });
-    setInvestingProductId(null);
-    setInvestmentFeedback(
-      result.success
-        ? { type: 'success', message: `₹${product.minInvestment} invested in ${product.name}.` }
-        : { type: 'error', message: result.error || 'Investment could not be completed.' }
-    );
+  // Auto clear feedback after 5s
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => setFeedback(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback]);
+
+  // AI Recommendation derived from wallet balance
+  const recommendation = useMemo(() => {
+    if (investmentWallet < 100) {
+      return {
+        product: PRODUCTS[0],
+        reason: 'Build your wallet balance to ₹100 using round-ups or Add Money to unlock your first Gold ETF investment.',
+        confidence: '95%',
+        expectedReturn: '9.0%',
+        risk: 'Low',
+        alternatives: [PRODUCTS[1], PRODUCTS[5]],
+      };
+    }
+    if (investmentWallet < 500) {
+      return {
+        product: PRODUCTS[0],
+        reason: 'Gold ETF has low volatility and is the perfect starting asset for your available ₹' + investmentWallet.toLocaleString('en-IN') + ' balance.',
+        confidence: '94%',
+        expectedReturn: '9.0%',
+        risk: 'Low',
+        alternatives: [PRODUCTS[2]],
+      };
+    }
+    if (investmentWallet < 1500) {
+      return {
+        product: PRODUCTS[1],
+        reason: 'Your ₹' + investmentWallet.toLocaleString('en-IN') + ' balance is ideal for Nifty 50 ETF, granting instant exposure to India\'s top 50 companies.',
+        confidence: '92%',
+        expectedReturn: '13.5%',
+        risk: 'Moderate',
+        alternatives: [PRODUCTS[0], PRODUCTS[2]],
+      };
+    }
+    return {
+      product: PRODUCTS[3],
+      reason: 'With ₹' + investmentWallet.toLocaleString('en-IN') + ' in your Investment Wallet, diversifying into Bluechip Equity maximizes long-term compounding.',
+      confidence: '89%',
+      expectedReturn: '16.5%',
+      risk: 'High Growth',
+      alternatives: [PRODUCTS[1], PRODUCTS[4], PRODUCTS[5]],
+    };
+  }, [investmentWallet]);
+
+  // Handle Simulated Add Money
+  async function handleAddMoneySubmit(e) {
+    e.preventDefault();
+    const num = parseFloat(addAmount);
+    if (!num || num <= 0) {
+      setFeedback({ type: 'error', message: 'Please enter a valid deposit amount.' });
+      return;
+    }
+
+    setIsAddingMoney(true);
+    const res = await addMoney(num);
+    setIsAddingMoney(false);
+
+    if (res.success) {
+      setFeedback({ type: 'success', message: `₹${num.toLocaleString('en-IN')} added to your Investment Wallet successfully!` });
+      setIsAddMoneyOpen(false);
+      setAddAmount('1000');
+    } else {
+      setFeedback({ type: 'error', message: res.error || 'Failed to add money.' });
+    }
+  }
+
+  // Handle Execute Investment
+  async function handleExecuteInvestment(e) {
+    e.preventDefault();
+    if (!selectedProduct) return;
+
+    const num = parseFloat(investAmount) || selectedProduct.minInvestment;
+    if (num < selectedProduct.minInvestment) {
+      setFeedback({ type: 'error', message: `Minimum investment for ${selectedProduct.name} is ₹${selectedProduct.minInvestment}.` });
+      return;
+    }
+
+    if (num > investmentWallet) {
+      setFeedback({ type: 'error', message: `Insufficient Investment Wallet balance. Please add money first.` });
+      return;
+    }
+
+    setIsInvesting(true);
+    const res = await invest({ productId: selectedProduct.id, amount: num });
+    setIsInvesting(false);
+
+    if (res.success) {
+      setFeedback({ type: 'success', message: `₹${num.toLocaleString('en-IN')} invested in ${selectedProduct.name} successfully!` });
+      setSelectedProduct(null);
+      setInvestAmount('');
+    } else {
+      setFeedback({ type: 'error', message: res.error || 'Investment execution failed.' });
+    }
   }
 
   if (loadingWallet) {
-    return <PageLoader label="Loading investments…" />;
+    return <PageLoader label="Loading your investments & portfolio…" />;
   }
 
   return (
-    <div className="max-w-5xl mx-auto pb-12">
+    <div className="max-w-6xl mx-auto pb-16">
       <PageHeader
-        title="Investments"
-        subtitle="Grow your round-up savings into real wealth"
+        title="Investment Hub"
+        subtitle="Turn your round-up savings into a high-yielding portfolio"
       />
 
-      {investmentFeedback && (
-        <div
-          role="status"
-          className={`mb-5 rounded-xl px-4 py-3 text-sm font-semibold ${
-            investmentFeedback.type === 'success'
-              ? 'bg-success/10 text-success border border-success/20'
-              : 'bg-danger/10 text-danger border border-danger/20'
+      {/* Global Feedback Alert */}
+      {feedback && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          className={`mb-6 rounded-2xl p-4 flex items-center justify-between shadow-md ${
+            feedback.type === 'success'
+              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-700'
+              : 'bg-rose-500/10 border border-rose-500/20 text-rose-700'
           }`}
         >
-          {investmentFeedback.message}
-        </div>
+          <div className="flex items-center gap-3">
+            {feedback.type === 'success' ? (
+              <CheckCircle2 className="text-emerald-600 shrink-0" size={20} />
+            ) : (
+              <AlertCircle className="text-rose-600 shrink-0" size={20} />
+            )}
+            <span className="text-sm font-semibold">{feedback.message}</span>
+          </div>
+          <button onClick={() => setFeedback(null)} className="text-gray-400 hover:text-gray-600">
+            <X size={18} />
+          </button>
+        </motion.div>
       )}
 
-      <motion.div variants={stagger} initial="hidden" animate="visible" className="space-y-6">
+      <motion.div variants={stagger} initial="hidden" animate="visible" className="space-y-8">
 
         {/* ===================================================
-            SECTION 1 — HERO PORTFOLIO CARD
+            SECTION 1 — TWO DISTINCT BALANCES HERO
         =================================================== */}
-        <motion.div variants={fadeUp}>
-          <Card className="relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-navy via-navy-light to-teal opacity-[0.03] pointer-events-none" />
-            <div className="relative p-6 md:p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Left: Primary Balance */}
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="h-12 w-12 rounded-2xl bg-mint/10 flex items-center justify-center border border-mint/20">
-                      <Wallet size={22} className="text-mint" />
-                    </div>
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-widest text-text-muted">Investment Wallet</p>
-                      <p className="text-xs text-text-muted">Available to Invest</p>
-                    </div>
-                  </div>
-
-                  <AnimatedCounter
-                    value={investmentWallet}
-                    prefix="₹"
-                    className="text-4xl md:text-5xl font-display font-extrabold text-navy block mb-6"
-                  />
-
-                  <Button
-                    variant="accent"
-                    className="shadow-lg shadow-mint/20"
-                    onClick={() => {
-                      const el = document.getElementById('invest-simulator');
-                      el?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    aria-label="Scroll to investment simulator"
-                  >
-                    Start Investing
-                    <ArrowRight size={16} className="ml-1" />
-                  </Button>
-                </div>
-
-                {/* Right: Stats Grid */}
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { label: 'Total Saved', value: `₹${investmentWallet.toLocaleString('en-IN')}`, accent: 'text-mint' },
-                    { label: 'Payments Made', value: totalTransactions, accent: 'text-navy' },
-                    { label: 'Savings Goal', value: goalName, accent: 'text-teal', small: true },
-                    { label: 'Goal Progress', value: `${goalProgress}%`, accent: 'text-navy' },
-                  ].map((s) => (
-                    <div key={s.label} className="bg-bg rounded-xl p-4 border border-border/60">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted mb-1.5">{s.label}</p>
-                      <p className={`${s.small ? 'text-base' : 'text-xl'} font-display font-extrabold ${s.accent} truncate`}>
-                        {s.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* ===================================================
-            SECTION 2 — AI INVESTMENT RECOMMENDATION
-        =================================================== */}
-        <motion.div variants={fadeUp}>
-          <Card className="relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-mint/5 to-transparent rounded-bl-full pointer-events-none" />
-            <div className="relative p-6 md:p-8">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-mint/20 to-teal/20 flex items-center justify-center">
-                  <Sparkles size={18} className="text-mint" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-navy">AI Recommendation</h2>
-                  <p className="text-xs text-text-muted">Based on your ₹{investmentWallet.toLocaleString('en-IN')} wallet</p>
-                </div>
-              </div>
-
-              <div className="bg-bg rounded-2xl p-5 md:p-6 border border-border/60">
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-navy">{recommendation.title}</h3>
-                    <p className="text-sm text-text-muted mt-0.5">{recommendation.subtitle}</p>
-                  </div>
-                  <Badge tone="mint">AI Pick</Badge>
-                </div>
-
-                <p className="text-sm text-navy/80 leading-relaxed mb-5">{recommendation.why}</p>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { label: 'Risk Level', value: recommendation.risk },
-                    { label: 'Expected Return', value: recommendation.expectedReturn },
-                    { label: 'Horizon', value: recommendation.horizon },
-                    { label: 'Wallet Needed', value: recommendation.product ? `₹${INVESTMENT_PRODUCTS.find(p => p.id === recommendation.product)?.minInvestment || '—'}` : '—' },
-                  ].map((m) => (
-                    <div key={m.label} className="bg-white rounded-xl p-3 border border-border/40">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted mb-1">{m.label}</p>
-                      <p className="text-sm font-bold text-navy">{m.value}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* ===================================================
-            SECTION 3 — INVESTMENT OPPORTUNITIES
-        =================================================== */}
-        <motion.div variants={fadeUp}>
-          <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-lg font-bold text-navy">Investment Opportunities</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {INVESTMENT_PRODUCTS.map((product) => {
-              const Icon = product.icon;
-              const canInvest = investmentWallet >= product.minInvestment;
-
-              return (
-                <motion.div key={product.id} variants={fadeUp}>
-                  <Card hoverable className="h-full flex flex-col">
-                    <div className="p-5 flex flex-col flex-1">
-                      {/* Header */}
-                      <div className="flex items-start justify-between mb-4">
-                        <div className={`h-11 w-11 rounded-xl ${product.bgColor} flex items-center justify-center border ${product.borderColor}`}>
-                          <Icon size={20} className={product.color} />
-                        </div>
-                        {product.badge && <Badge tone="outline">{product.badge}</Badge>}
-                      </div>
-
-                      {/* Info */}
-                      <h3 className="text-base font-bold text-navy mb-1">{product.name}</h3>
-                      <p className="text-xs text-text-muted mb-4 leading-relaxed flex-1">{product.description}</p>
-
-                      {/* Metrics */}
-                      <div className="space-y-2 mb-5">
-                        <div className="flex justify-between text-xs">
-                          <span className="text-text-muted">Risk</span>
-                          <span className={`font-semibold ${product.riskColor}`}>{product.risk}</span>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-text-muted">Expected Return</span>
-                          <span className="font-semibold text-navy">{product.expectedReturn}</span>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-text-muted">Min. Investment</span>
-                          <span className="font-semibold text-navy">₹{product.minInvestment}</span>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-text-muted">Recommended For</span>
-                          <span className="font-semibold text-navy truncate ml-2">{product.recommendedFor}</span>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex gap-2 mt-auto">
-                        <Button variant="secondary" size="sm" className="flex-1">
-                          <Eye size={14} className="mr-1" /> Preview
-                        </Button>
-                        <Button
-                          variant={canInvest ? 'accent' : 'secondary'}
-                          size="sm"
-                          className="flex-1"
-                          disabled={!canInvest || investingProductId !== null}
-                          onClick={() => handleInvest(product)}
-                          aria-label={canInvest ? `Invest in ${product.name}` : `Need ₹${product.minInvestment} to invest`}
-                        >
-                          {investingProductId === product.id ? 'Investing…' : canInvest ? 'Invest' : `Need ₹${product.minInvestment}`}
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              );
-            })}
-          </div>
-        </motion.div>
-
-        {/* Two-column layout: Diversification + Simulator */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          {/* ===================================================
-              SECTION 4 — PORTFOLIO DIVERSIFICATION
-          =================================================== */}
+          {/* CARD 1: INVESTMENT WALLET (Available to Invest) */}
           <motion.div variants={fadeUp}>
-            <Card padding="lg" className="h-full">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-9 w-9 rounded-xl bg-navy/5 flex items-center justify-center">
-                  <BarChart3 size={18} className="text-navy" />
-                </div>
+            <Card className="relative overflow-hidden h-full border border-mint/30 bg-gradient-to-br from-white via-mint/5 to-white shadow-lg">
+              <div className="p-6 md:p-8 flex flex-col justify-between h-full">
                 <div>
-                  <h2 className="text-lg font-bold text-navy">Recommended Allocation</h2>
-                  <p className="text-xs text-text-muted">Ideal portfolio split for balanced growth</p>
-                </div>
-              </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-2xl bg-mint/20 flex items-center justify-center border border-mint/30 shadow-inner">
+                        <Wallet size={24} className="text-emerald-700" />
+                      </div>
+                      <div>
+                        <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-800">
+                          Investment Wallet
+                        </span>
+                        <p className="text-xs text-text-muted">Available to Invest</p>
+                      </div>
+                    </div>
 
-              <div className="flex flex-col items-center">
-                {/* Donut Chart */}
-                <div className="relative mb-6">
-                  <DonutChart data={PORTFOLIO_ALLOCATION} size={180} />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Portfolio</span>
-                    <span className="text-lg font-display font-extrabold text-navy">100%</span>
+                    <Button
+                      variant="accent"
+                      size="sm"
+                      onClick={() => setIsAddMoneyOpen(true)}
+                      className="shadow-md shadow-mint/20 py-2 px-3 text-xs"
+                    >
+                      <PlusCircle size={15} className="mr-1.5" />
+                      Add Money
+                    </Button>
+                  </div>
+
+                  <div className="mb-6">
+                    <AnimatedCounter
+                      value={investmentWallet}
+                      prefix="₹"
+                      className="text-4xl md:text-5xl font-display font-extrabold text-navy block"
+                    />
                   </div>
                 </div>
 
-                {/* Legend */}
-                <div className="w-full space-y-2.5">
-                  {PORTFOLIO_ALLOCATION.map((seg) => (
-                    <div key={seg.label} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <span
-                          className="h-3 w-3 rounded-full shrink-0"
-                          style={{ backgroundColor: seg.color }}
-                        />
-                        <span className="text-sm text-navy font-medium">{seg.label}</span>
-                      </div>
-                      <span className="text-sm font-bold text-navy">{seg.pct}%</span>
+                {/* Sources Breakdown */}
+                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border/60">
+                  <div className="bg-white/80 rounded-xl p-3 border border-border/40">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <PiggyBank size={14} className="text-mint" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Round-up Savings</span>
                     </div>
-                  ))}
+                    <p className="text-base font-extrabold text-navy">₹{totalRoundups.toLocaleString('en-IN')}</p>
+                  </div>
+
+                  <div className="bg-white/80 rounded-xl p-3 border border-border/40">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <PlusCircle size={14} className="text-teal" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Manual Deposits</span>
+                    </div>
+                    <p className="text-base font-extrabold text-navy">₹{manualDeposits.toLocaleString('en-IN')}</p>
+                  </div>
                 </div>
               </div>
             </Card>
           </motion.div>
 
-          {/* ===================================================
-              SECTION 5 — INVESTMENT SIMULATOR
-          =================================================== */}
-          <motion.div variants={fadeUp} id="invest-simulator">
-            <Card padding="lg" className="h-full">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-9 w-9 rounded-xl bg-teal/10 flex items-center justify-center">
-                  <Calculator size={18} className="text-teal" />
-                </div>
+          {/* CARD 2: INVESTMENT PORTFOLIO (Money Invested) */}
+          <motion.div variants={fadeUp}>
+            <Card className="relative overflow-hidden h-full border border-navy/10 bg-gradient-to-br from-navy via-navy-light to-navy text-white shadow-xl">
+              <div className="p-6 md:p-8 flex flex-col justify-between h-full relative z-10">
                 <div>
-                  <h2 className="text-lg font-bold text-navy">Investment Simulator</h2>
-                  <p className="text-xs text-text-muted">See how your money can grow</p>
-                </div>
-              </div>
-
-              {/* Amount Input */}
-              <div className="mb-6">
-                <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">
-                  Amount to Invest
-                </label>
-                <div className="flex items-baseline gap-2 border-b-2 border-border pb-2 focus-within:border-mint transition-colors">
-                  <span className="text-2xl font-light text-text-muted">₹</span>
-                  <input
-                    type="number"
-                    value={simAmount}
-                    onChange={(e) => setSimAmount(e.target.value)}
-                    placeholder="0"
-                    max={investmentWallet}
-                    className="w-full text-3xl font-display font-bold text-navy bg-transparent border-none p-0 focus:ring-0 focus:outline-none placeholder:text-text-muted/30"
-                    aria-label="Investment simulator amount"
-                  />
-                </div>
-                <p className="text-[11px] text-text-muted mt-2">
-                  Available: ₹{investmentWallet.toLocaleString('en-IN')}
-                  {simValue > investmentWallet && (
-                    <span className="text-danger ml-1">(capped to wallet balance)</span>
-                  )}
-                </p>
-              </div>
-
-              {/* Results */}
-              {simCapped > 0 ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-3"
-                >
-                  {[
-                    { label: 'Remaining Wallet', value: `₹${simRemaining.toLocaleString('en-IN')}`, icon: Wallet },
-                    { label: 'Est. Annual Return (12%)', value: `₹${simAnnualReturn.toLocaleString('en-IN')}`, icon: TrendingUp },
-                    { label: 'Est. 5-Year Value', value: `₹${simFiveYear.toLocaleString('en-IN')}`, icon: Target },
-                  ].map((row) => {
-                    const RowIcon = row.icon;
-                    return (
-                      <div key={row.label} className="flex items-center justify-between bg-bg rounded-xl px-4 py-3 border border-border/50">
-                        <div className="flex items-center gap-3">
-                          <RowIcon size={16} className="text-text-muted" />
-                          <span className="text-sm text-text-muted font-medium">{row.label}</span>
-                        </div>
-                        <span className="text-sm font-bold text-navy">{row.value}</span>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20">
+                        <Briefcase size={24} className="text-mint" />
                       </div>
-                    );
-                  })}
+                      <div>
+                        <span className="text-[11px] font-extrabold uppercase tracking-widest text-mint">
+                          Investment Portfolio
+                        </span>
+                        <p className="text-xs text-white/70">Money Already Invested</p>
+                      </div>
+                    </div>
 
-                  <div className="flex items-start gap-2 pt-2">
-                    <Info size={14} className="text-text-muted shrink-0 mt-0.5" />
-                    <p className="text-[11px] text-text-muted leading-relaxed">
-                      This is a simplified projection assuming 12% annual compounding. Actual returns may vary based on market conditions.
+                    <Badge tone="mint" className="bg-mint/20 text-mint border-none">
+                      Active Portfolio
+                    </Badge>
+                  </div>
+
+                  <div className="mb-6">
+                    <AnimatedCounter
+                      value={portfolio.currentValue || 0}
+                      prefix="₹"
+                      className="text-4xl md:text-5xl font-display font-extrabold text-white block"
+                    />
+                  </div>
+                </div>
+
+                {/* Portfolio Metrics */}
+                <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/15">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">Total Invested</span>
+                    <p className="text-base font-bold text-white mt-0.5">₹{(portfolio.totalInvested || 0).toLocaleString('en-IN')}</p>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">Current Value</span>
+                    <p className="text-base font-bold text-white mt-0.5">₹{(portfolio.currentValue || 0).toLocaleString('en-IN')}</p>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">Total Profit</span>
+                    <p className="text-base font-extrabold text-mint mt-0.5 flex items-center">
+                      <ArrowUpRight size={14} className="mr-0.5" />
+                      +₹{(portfolio.profit || 0).toLocaleString('en-IN')}
                     </p>
                   </div>
-                </motion.div>
-              ) : (
-                <div className="text-center py-6 text-sm text-text-muted">
-                  Enter an amount above to see a growth projection.
                 </div>
-              )}
+              </div>
             </Card>
           </motion.div>
         </div>
 
         {/* ===================================================
-            SECTION 6 — FINANCIAL EDUCATION
+            SECTION 2 — AI RECOMMENDATION (Flagship)
         =================================================== */}
         <motion.div variants={fadeUp}>
-          <div className="flex items-center gap-3 mb-4">
-            <BookOpen size={18} className="text-navy" />
-            <h2 className="text-lg font-bold text-navy">Learn About Investing</h2>
+          <Card className="relative overflow-hidden border border-mint/30 bg-gradient-to-r from-mint/5 via-white to-teal/5">
+            <div className="p-6 md:p-8">
+              <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-mint to-teal flex items-center justify-center text-white shadow-md">
+                    <Sparkles size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-extrabold text-navy flex items-center gap-2">
+                      AI Wealth Recommendation
+                    </h2>
+                    <p className="text-xs text-text-muted">Personalized for your ₹{investmentWallet.toLocaleString('en-IN')} wallet</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Badge tone="mint">Confidence: {recommendation.confidence}</Badge>
+                  <Badge tone="indigo">Risk: {recommendation.risk}</Badge>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 border border-border/80 shadow-sm">
+                <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-mint">Top Recommended Asset</span>
+                    <h3 className="text-2xl font-bold text-navy">{recommendation.product.name}</h3>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs text-text-muted">Expected Annual Return</span>
+                    <p className="text-xl font-extrabold text-emerald-600">{recommendation.expectedReturn}</p>
+                  </div>
+                </div>
+
+                <p className="text-sm text-navy/80 leading-relaxed mb-6 bg-bg/50 p-3.5 rounded-xl border border-border/40">
+                  💡 <span className="font-semibold text-navy">AI Rationale:</span> {recommendation.reason}
+                </p>
+
+                {/* CTA & Alternatives */}
+                <div className="flex items-center justify-between flex-wrap gap-4 pt-2">
+                  <Button
+                    variant="accent"
+                    onClick={() => {
+                      setSelectedProduct(recommendation.product);
+                      setInvestAmount(recommendation.product.minInvestment.toString());
+                    }}
+                  >
+                    Invest in {recommendation.product.name}
+                    <ArrowRight size={16} className="ml-1.5" />
+                  </Button>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-text-muted font-medium">Alternative Options:</span>
+                    {recommendation.alternatives.map((alt) => (
+                      <button
+                        key={alt.id}
+                        onClick={() => {
+                          setSelectedProduct(alt);
+                          setInvestAmount(alt.minInvestment.toString());
+                        }}
+                        className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-bg border border-border hover:bg-white text-navy transition-colors"
+                      >
+                        {alt.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* ===================================================
+            SECTION 3 — INVESTMENT PRODUCTS CATALOG
+        =================================================== */}
+        <motion.div variants={fadeUp}>
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-xl font-bold text-navy">Investment Products</h2>
+              <p className="text-xs text-text-muted">Select an asset class to invest your accumulated wallet funds</p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {EDUCATION_CARDS.map((card) => {
-              const EduIcon = card.icon;
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {PRODUCTS.map((product) => {
+              const IconComponent = ICON_MAP[product.icon] || TrendingUp;
+              const isAffordable = investmentWallet >= product.minInvestment;
+
               return (
-                <Card key={card.title} hoverable>
-                  <div className="p-5">
-                    <div className="flex items-start gap-4">
-                      <div className="h-10 w-10 rounded-xl bg-mint/10 flex items-center justify-center border border-mint/20 shrink-0">
-                        <EduIcon size={18} className="text-mint" />
+                <Card key={product.id} hoverable className="h-full flex flex-col justify-between border border-border/80">
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div
+                        className="h-12 w-12 rounded-2xl flex items-center justify-center shadow-sm"
+                        style={{ backgroundColor: `${product.color}15`, color: product.color }}
+                      >
+                        <IconComponent size={22} />
                       </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-navy mb-1.5">{card.title}</h3>
-                        <p className="text-xs text-text-muted leading-relaxed">{card.body}</p>
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${product.riskColor} bg-gray-100`}>
+                        {product.risk} Risk
+                      </span>
+                    </div>
+
+                    <h3 className="text-lg font-bold text-navy mb-1">{product.name}</h3>
+                    <p className="text-xs text-text-muted mb-4 leading-relaxed line-clamp-2">{product.description}</p>
+
+                    <div className="space-y-2 py-3 border-t border-b border-border/50 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">Expected Annual Return</span>
+                        <span className="font-extrabold text-emerald-600">{product.expectedReturn}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">Minimum Investment</span>
+                        <span className="font-bold text-navy">₹{product.minInvestment.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">Recommended For</span>
+                        <span className="font-medium text-navy truncate max-w-[140px]">{product.recommendedFor}</span>
                       </div>
                     </div>
+                  </div>
+
+                  <div className="p-6 pt-0">
+                    <Button
+                      variant={isAffordable ? 'accent' : 'secondary'}
+                      fullWidth
+                      onClick={() => {
+                        setSelectedProduct(product);
+                        setInvestAmount(product.minInvestment.toString());
+                      }}
+                      className={isAffordable ? 'shadow-md shadow-mint/20' : ''}
+                    >
+                      {isAffordable ? 'Invest Now' : `Need ₹${product.minInvestment}`}
+                    </Button>
                   </div>
                 </Card>
               );
@@ -682,60 +522,311 @@ export default function Investments() {
         </motion.div>
 
         {/* ===================================================
-            SECTION 7 — RECENT INVESTMENT ACTIVITY
+            SECTION 4 — PORTFOLIO ANALYTICS & ALLOCATION
         =================================================== */}
-        <motion.div variants={fadeUp}>
-          <Card>
-            <div className="p-6 md:p-8">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="h-9 w-9 rounded-xl bg-navy/5 flex items-center justify-center">
-                  <Clock size={18} className="text-navy" />
-                </div>
-                <h2 className="text-lg font-bold text-navy">Recent Investment Activity</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* Allocation Donut Chart */}
+          <motion.div variants={fadeUp} className="lg:col-span-1">
+            <Card padding="lg" className="h-full border border-border/80">
+              <div className="flex items-center gap-2 mb-6">
+                <PieChart size={20} className="text-navy" />
+                <h3 className="text-base font-bold text-navy">Asset Allocation</h3>
               </div>
 
-              {investments.length > 0 ? (
-                <div className="space-y-3">
-                  {investments.map((investment) => {
-                    const product = INVESTMENT_PRODUCTS.find((item) => item.id === investment.investmentType);
-                    return (
-                      <div key={investment.id} className="flex items-center justify-between rounded-xl border border-border bg-bg px-4 py-3">
-                        <div>
-                          <p className="text-sm font-bold text-navy">{product?.name || investment.investmentType}</p>
-                          <p className="text-xs text-text-muted">{investment.riskLevel || '—'} risk · {new Date(investment.createdAt).toLocaleDateString('en-IN')}</p>
-                        </div>
-                        <p className="text-sm font-extrabold text-mint">₹{investment.amount.toLocaleString('en-IN')}</p>
+              <div className="flex flex-col items-center">
+                <div className="relative mb-6">
+                  <DonutChart data={portfolio.allocation || []} size={180} />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Holdings</span>
+                    <span className="text-lg font-extrabold text-navy">{portfolio.holdingsCount || 0} Assets</span>
+                  </div>
+                </div>
+
+                <div className="w-full space-y-2.5">
+                  {(portfolio.allocation || []).map((seg) => (
+                    <div key={seg.label} className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: seg.color }} />
+                        <span className="font-semibold text-navy">{seg.label}</span>
                       </div>
-                    );
-                  })}
+                      <span className="font-extrabold text-navy">{seg.pct}%</span>
+                    </div>
+                  ))}
                 </div>
-              ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-center">
-                <div className="h-20 w-20 rounded-full bg-bg flex items-center justify-center mb-5 border border-border">
-                  <Gem size={32} className="text-text-muted" />
-                </div>
-                <h3 className="text-base font-bold text-navy mb-1">No investments yet</h3>
-                <p className="text-sm text-text-muted max-w-xs mb-6">
-                  Your round-up savings are ready. Start investing to see your wealth grow here.
-                </p>
-                <Button
-                  variant="accent"
-                  onClick={() => {
-                    const el = document.getElementById('invest-simulator');
-                    el?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  aria-label="Scroll to investment simulator to begin"
-                >
-                  Try the Simulator
-                  <ChevronRight size={16} className="ml-1" />
-                </Button>
               </div>
-              )}
+            </Card>
+          </motion.div>
+
+          {/* Analytics Stat Cards Grid */}
+          <motion.div variants={fadeUp} className="lg:col-span-2">
+            <Card padding="lg" className="h-full border border-border/80">
+              <div className="flex items-center gap-2 mb-6">
+                <BarChart3 size={20} className="text-navy" />
+                <h3 className="text-base font-bold text-navy">Portfolio Performance Analytics</h3>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="bg-bg rounded-2xl p-4 border border-border/60">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted block mb-1">Total Invested</span>
+                  <p className="text-xl font-extrabold text-navy">₹{(portfolio.totalInvested || 0).toLocaleString('en-IN')}</p>
+                </div>
+
+                <div className="bg-bg rounded-2xl p-4 border border-border/60">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted block mb-1">Current Value</span>
+                  <p className="text-xl font-extrabold text-navy">₹{(portfolio.currentValue || 0).toLocaleString('en-IN')}</p>
+                </div>
+
+                <div className="bg-bg rounded-2xl p-4 border border-border/60">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted block mb-1">Overall Gain</span>
+                  <p className="text-xl font-extrabold text-emerald-600 flex items-center">
+                    <ArrowUpRight size={16} className="mr-0.5" />
+                    +{portfolio.overallGainPercentage || 0}%
+                  </p>
+                </div>
+
+                <div className="bg-bg rounded-2xl p-4 border border-border/60">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted block mb-1">Today's Gain</span>
+                  <p className="text-xl font-extrabold text-emerald-600">+₹{(portfolio.todayGain || 0).toLocaleString('en-IN')}</p>
+                </div>
+
+                <div className="bg-bg rounded-2xl p-4 border border-border/60 sm:col-span-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted block mb-1">Best Performing Asset</span>
+                  <p className="text-base font-extrabold text-navy truncate">{portfolio.bestAsset || 'None'}</p>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* ===================================================
+            SECTION 5 — RECENT INVESTMENT ACTIVITY
+        =================================================== */}
+        <motion.div variants={fadeUp}>
+          <Card padding="lg" className="border border-border/80">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <Layers size={20} className="text-navy" />
+                <h3 className="text-lg font-bold text-navy">Recent Investment Activity</h3>
+              </div>
+              <Badge tone="mint">{investments.length} Investments Active</Badge>
             </div>
+
+            {investments.length > 0 ? (
+              <div className="divide-y divide-border/60">
+                {investments.map((inv) => (
+                  <div key={inv.id} className="py-4 flex items-center justify-between flex-wrap gap-3 first:pt-0 last:pb-0">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-navy/5 flex items-center justify-center font-bold text-navy text-sm">
+                        {inv.productName ? inv.productName.charAt(0) : 'I'}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-navy">{inv.productName || inv.productId}</h4>
+                        <p className="text-xs text-text-muted">
+                          Purchased {new Date(inv.createdAt).toLocaleDateString('en-IN')} · <span className="text-emerald-600 font-semibold">Active</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-sm font-extrabold text-navy">₹{(inv.currentValue || inv.amount).toLocaleString('en-IN')}</p>
+                      <p className="text-xs font-bold text-emerald-600 flex items-center justify-end">
+                        <ArrowUpRight size={12} className="mr-0.5" />
+                        +₹{(inv.profit || 0).toLocaleString('en-IN')} ({inv.profitPct || 0}%)
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-bg/50 rounded-2xl border border-dashed border-border">
+                <Briefcase size={36} className="text-gray-400 mx-auto mb-3" />
+                <h4 className="text-base font-bold text-navy mb-1">No Active Investments Yet</h4>
+                <p className="text-xs text-text-muted max-w-sm mx-auto mb-4">
+                  Select a product above or use the AI Recommendation to start growing your wealth.
+                </p>
+              </div>
+            )}
           </Card>
         </motion.div>
 
       </motion.div>
+
+      {/* ===================================================
+          MODAL 1: ADD MONEY (SIMULATED TOP-UP)
+      =================================================== */}
+      <AnimatePresence>
+        {isAddMoneyOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-border relative"
+            >
+              <button
+                onClick={() => setIsAddMoneyOpen(false)}
+                className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 p-1"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-12 w-12 rounded-2xl bg-mint/20 flex items-center justify-center border border-mint/30">
+                  <PlusCircle size={24} className="text-emerald-700" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-extrabold text-navy">Add Money</h3>
+                  <p className="text-xs text-text-muted">Simulated top-up to Investment Wallet</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleAddMoneySubmit} className="space-y-6">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">
+                    Select Quick Amount
+                  </label>
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    {['500', '1000', '2000', '5000'].map((amt) => (
+                      <button
+                        key={amt}
+                        type="button"
+                        onClick={() => setAddAmount(amt)}
+                        className={`py-2 text-xs font-bold rounded-xl border transition-all ${
+                          addAmount === amt
+                            ? 'bg-navy text-white border-navy shadow-md'
+                            : 'bg-bg text-navy border-border hover:bg-white'
+                        }`}
+                      >
+                        +₹{parseInt(amt).toLocaleString('en-IN')}
+                      </button>
+                    ))}
+                  </div>
+
+                  <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">
+                    Or Enter Custom Amount (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={addAmount}
+                    onChange={(e) => setAddAmount(e.target.value)}
+                    placeholder="Enter amount"
+                    className="w-full px-4 py-3 bg-bg border border-border rounded-xl font-bold text-navy text-lg focus:outline-none focus:ring-2 focus:ring-mint"
+                    autoFocus
+                  />
+                </div>
+
+                <div className="bg-mint/10 p-3.5 rounded-xl border border-mint/20 text-xs text-navy">
+                  <p className="font-semibold mb-0.5">Wallet Preview:</p>
+                  <p className="text-text-muted">
+                    Available balance will increase from <span className="font-bold text-navy">₹{investmentWallet.toLocaleString('en-IN')}</span> to{' '}
+                    <span className="font-extrabold text-emerald-700">
+                      ₹{(investmentWallet + (parseFloat(addAmount) || 0)).toLocaleString('en-IN')}
+                    </span>
+                  </p>
+                </div>
+
+                <Button variant="accent" type="submit" fullWidth disabled={isAddingMoney} className="py-3 text-base">
+                  {isAddingMoney ? 'Adding Funds…' : 'Confirm Deposit'}
+                </Button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ===================================================
+          MODAL 2: EXECUTE INVESTMENT ORDER
+      =================================================== */}
+      <AnimatePresence>
+        {selectedProduct && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-border relative"
+            >
+              <button
+                onClick={() => setSelectedProduct(null)}
+                className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 p-1"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="flex items-center gap-3 mb-6">
+                <div
+                  className="h-12 w-12 rounded-2xl flex items-center justify-center shadow-sm"
+                  style={{ backgroundColor: `${selectedProduct.color}15`, color: selectedProduct.color }}
+                >
+                  {(() => {
+                    const IconComp = ICON_MAP[selectedProduct.icon] || TrendingUp;
+                    return <IconComp size={24} />;
+                  })()}
+                </div>
+                <div>
+                  <h3 className="text-xl font-extrabold text-navy">Invest in {selectedProduct.name}</h3>
+                  <p className="text-xs text-text-muted">Expected Return: {selectedProduct.expectedReturn}</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleExecuteInvestment} className="space-y-6">
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-text-muted">
+                      Investment Amount (₹)
+                    </label>
+                    <span className="text-xs text-text-muted">
+                      Available: <span className="font-bold text-navy">₹{investmentWallet.toLocaleString('en-IN')}</span>
+                    </span>
+                  </div>
+
+                  <input
+                    type="number"
+                    value={investAmount}
+                    onChange={(e) => setInvestAmount(e.target.value)}
+                    min={selectedProduct.minInvestment}
+                    max={investmentWallet}
+                    placeholder={`Min. ₹${selectedProduct.minInvestment}`}
+                    className="w-full px-4 py-3 bg-bg border border-border rounded-xl font-bold text-navy text-lg focus:outline-none focus:ring-2 focus:ring-mint"
+                    autoFocus
+                  />
+                  <p className="text-[11px] text-text-muted mt-1.5">
+                    Minimum investment required: ₹{selectedProduct.minInvestment.toLocaleString('en-IN')}
+                  </p>
+                </div>
+
+                <div className="bg-bg p-4 rounded-2xl border border-border/60 space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">Wallet Available</span>
+                    <span className="font-semibold text-navy">₹{investmentWallet.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">Amount Deducted</span>
+                    <span className="font-bold text-rose-600">-₹{(parseFloat(investAmount) || selectedProduct.minInvestment).toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-border/40">
+                    <span className="font-semibold text-navy">Wallet Balance After</span>
+                    <span className="font-extrabold text-navy">
+                      ₹{Math.max(0, investmentWallet - (parseFloat(investAmount) || selectedProduct.minInvestment)).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                </div>
+
+                <Button
+                  variant="accent"
+                  type="submit"
+                  fullWidth
+                  disabled={isInvesting || investmentWallet < selectedProduct.minInvestment}
+                  className="py-3 text-base shadow-lg shadow-mint/20"
+                >
+                  {isInvesting ? 'Executing Order…' : `Confirm ₹${(parseFloat(investAmount) || selectedProduct.minInvestment).toLocaleString('en-IN')} Investment`}
+                </Button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

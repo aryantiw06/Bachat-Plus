@@ -12,10 +12,20 @@ export function WalletProvider({ children }) {
   // ---- Backend-synced State ----
   const [investmentWallet, setInvestmentWallet] = useState(0);
   const [totalRoundups, setTotalRoundups] = useState(0);
+  const [manualDeposits, setManualDeposits] = useState(0);
   const [totalTransactions, setTotalTransactions] = useState(0);
   const [lastTransactionAt, setLastTransactionAt] = useState('');
   const [transactions, setTransactions] = useState([]);
   const [investments, setInvestments] = useState([]);
+  const [portfolio, setPortfolio] = useState({
+    totalInvested: 0,
+    currentValue: 0,
+    profit: 0,
+    overallGainPercentage: 0,
+    todayGain: 0,
+    bestAsset: 'None',
+    allocation: [{ label: 'Cash', pct: 100, amount: 0, color: '#94a3b8' }],
+  });
   
   // ---- Local UI Settings ----
   const [savingsGoal, setSavingsGoal] = useState(10000);
@@ -29,21 +39,21 @@ export function WalletProvider({ children }) {
   const refreshWallet = useCallback(async () => {
     try {
       setSyncStatus('Saving');
-      const [walletData, paymentsData, investmentsData] = await Promise.all([
+      const [walletData, paymentsData, investmentsBundle] = await Promise.all([
         walletService.getWallet(),
         paymentService.getPayments({ page: 1, limit: 20 }),
         investmentService.getInvestments(),
       ]);
 
       if (walletData) {
-        setInvestmentWallet(walletData.walletBalance || 0);
-        setTotalRoundups(walletData.totalRoundups || 0);
-        setTotalTransactions(walletData.totalTransactions || 0);
+        setInvestmentWallet(walletData.walletBalance ?? walletData.investmentWallet ?? 0);
+        setTotalRoundups(walletData.totalRoundups ?? walletData.lifetimeSavings ?? 0);
+        setManualDeposits(walletData.manualDeposits ?? 0);
+        setTotalTransactions(walletData.totalTransactions ?? 0);
         setLastTransactionAt(walletData.lastTransactionAt || '');
       }
 
       if (paymentsData && paymentsData.transactions) {
-        // Map backend transaction schema to frontend friendly properties
         const formattedTxns = paymentsData.transactions.map(tx => ({
           id: tx.id,
           merchantName: tx.merchant,
@@ -59,7 +69,21 @@ export function WalletProvider({ children }) {
         }));
         setTransactions(formattedTxns);
       }
-      setInvestments(investmentsData?.investments || []);
+
+      if (investmentsBundle) {
+        if (investmentsBundle.investments) {
+          setInvestments(investmentsBundle.investments);
+        }
+        if (investmentsBundle.portfolio) {
+          setPortfolio(investmentsBundle.portfolio);
+        }
+        if (investmentsBundle.wallet) {
+          setInvestmentWallet(investmentsBundle.wallet.investmentWallet ?? investmentsBundle.wallet.availableBalance ?? 0);
+          setTotalRoundups(investmentsBundle.wallet.totalRoundups ?? 0);
+          setManualDeposits(investmentsBundle.wallet.manualDeposits ?? 0);
+        }
+      }
+
       setSyncStatus('Synced');
       setTimeout(() => setSyncStatus(''), 2000);
     } catch (err) {
@@ -76,9 +100,19 @@ export function WalletProvider({ children }) {
     } else {
       setInvestmentWallet(0);
       setTotalRoundups(0);
+      setManualDeposits(0);
       setTotalTransactions(0);
       setTransactions([]);
       setInvestments([]);
+      setPortfolio({
+        totalInvested: 0,
+        currentValue: 0,
+        profit: 0,
+        overallGainPercentage: 0,
+        todayGain: 0,
+        bestAsset: 'None',
+        allocation: [{ label: 'Cash', pct: 100, amount: 0, color: '#94a3b8' }],
+      });
       setLoadingWallet(false);
     }
   }, [user, refreshWallet]);
@@ -144,8 +178,6 @@ export function WalletProvider({ children }) {
         const res = await paymentService.createPayment(payload);
 
         if (res && res.success) {
-          // Apply the committed response immediately so all context consumers
-          // re-render before the follow-up read completes.
           const wallet = res.wallet || {};
           setInvestmentWallet(wallet.walletBalance ?? 0);
           setTotalRoundups(wallet.totalRoundups ?? 0);
@@ -168,7 +200,6 @@ export function WalletProvider({ children }) {
             ...current.filter((transaction) => transaction.id !== res.transaction.id),
           ].slice(0, 20));
 
-          // Re-read committed Firestore state to keep this context authoritative.
           await refreshWallet();
           setSyncStatus('Synced');
           return { success: true, ...res };
@@ -182,18 +213,45 @@ export function WalletProvider({ children }) {
     [refreshWallet]
   );
 
-  const invest = useCallback(async ({ amount, investmentType, riskLevel }) => {
+  // ---- Add Money (Simulated Wallet Deposit) ----
+  const addMoney = useCallback(async (amount) => {
     setSyncStatus('Saving');
     try {
-      const res = await investmentService.createInvestment({ amount, investmentType, riskLevel });
-      if (!res?.success) return { success: false, error: 'Investment could not be completed.' };
+      const res = await investmentService.addMoney({ amount });
+      if (res && res.success) {
+        if (res.wallet) {
+          setInvestmentWallet(res.wallet.investmentWallet ?? res.wallet.walletBalance ?? 0);
+          setManualDeposits(res.wallet.manualDeposits ?? 0);
+        }
+        await refreshWallet();
+        setSyncStatus('Synced');
+        return { success: true, ...res };
+      }
+      return { success: false, error: res?.message || 'Failed to add money' };
+    } catch (err) {
+      console.error('Add money failed:', err);
+      setSyncStatus('Failed');
+      return { success: false, error: err.message || 'Add money failed' };
+    }
+  }, [refreshWallet]);
 
-      const wallet = res.wallet || {};
-      setInvestmentWallet(wallet.walletBalance ?? 0);
-      setTotalRoundups(wallet.totalRoundups ?? 0);
-      setTotalTransactions(wallet.totalTransactions ?? 0);
-      setLastTransactionAt(wallet.lastTransactionAt ?? '');
-      setInvestments((current) => [res.investment, ...current.filter((item) => item.id !== res.investment.id)]);
+  // ---- Execute Investment ----
+  const invest = useCallback(async ({ productId, investmentType, amount, riskLevel }) => {
+    setSyncStatus('Saving');
+    try {
+      const targetId = productId || investmentType;
+      const res = await investmentService.createInvestment({ productId: targetId, amount, riskLevel });
+      if (!res?.success) return { success: false, error: res?.message || 'Investment could not be completed.' };
+
+      if (res.wallet) {
+        setInvestmentWallet(res.wallet.investmentWallet ?? res.wallet.walletBalance ?? 0);
+      }
+      if (res.portfolio) {
+        setPortfolio(res.portfolio);
+      }
+      if (res.investment) {
+        setInvestments((current) => [res.investment, ...current.filter((item) => item.id !== res.investment.id)]);
+      }
 
       await refreshWallet();
       setSyncStatus('Synced');
@@ -208,10 +266,12 @@ export function WalletProvider({ children }) {
     // Backend Stored State
     investmentWallet,
     totalRoundups,
+    manualDeposits,
     totalTransactions,
     lastTransactionAt,
     transactions,
     investments,
+    portfolio,
     savingsGoal,
     goalName,
 
@@ -228,6 +288,7 @@ export function WalletProvider({ children }) {
     syncStatus,
     refreshWallet,
     processRoundUpPayment,
+    addMoney,
     invest,
     setSavingsGoal,
     setGoalName,
