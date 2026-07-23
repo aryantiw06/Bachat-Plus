@@ -21,15 +21,18 @@ const api = axios.create({
   timeout: 15000,
 });
 
-// Request Interceptor: Attach Firebase Auth ID Token automatically
+// Request Interceptor: Wait for Firebase Auth initialization & attach ID Token automatically
 api.interceptors.request.use(
   async (config) => {
     try {
+      if (auth.authStateReady) {
+        await auth.authStateReady();
+      }
       const user = auth.currentUser;
       if (!user) {
         return Promise.reject(new Error('You must be signed in to call the API.'));
       }
-      const token = await user.getIdToken(true);
+      const token = await user.getIdToken();
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     } catch (err) {

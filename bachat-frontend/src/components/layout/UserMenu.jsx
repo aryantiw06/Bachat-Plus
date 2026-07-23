@@ -27,8 +27,8 @@ export default function UserMenu() {
   const [logoutOpen, setLogoutOpen] = useState(false);
   const menuRef = useRef(null);
 
-  const displayName = user?.displayName || 'Aryan Tiwary';
-  const email = user?.email || 'aryan@bachatplus.com';
+  const displayName = user?.displayName || user?.email?.split('@')[0] || 'Bachat+ User';
+  const email = user?.email || 'user@bachatplus.com';
   const initial = displayName.charAt(0).toUpperCase();
 
   // Close on outside click & Escape key

@@ -25,6 +25,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { auth } from '../firebase';
+import authService from '../services/auth.service';
 
 // ---- 1. Create the Context ----
 // createContext() creates a "channel" that components can subscribe to.
@@ -64,15 +65,18 @@ export function AuthProvider({ children }) {
   // in or out. This is what makes "stay logged in" work.
   useEffect(() => {
     // Subscribe to auth state changes
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      // firebaseUser is either a User object or null
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
-      // Initial check is done — stop showing the loading spinner
+      if (firebaseUser) {
+        try {
+          await authService.createSession();
+        } catch (err) {
+          console.warn('Backend auth session bootstrap warning:', err);
+        }
+      }
       setLoading(false);
     });
 
-    // Cleanup: unsubscribe when AuthProvider unmounts
-    // (prevents memory leaks in development with StrictMode)
     return unsubscribe;
   }, []);
 

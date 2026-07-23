@@ -42,8 +42,8 @@ export default function Profile() {
   const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(user?.displayName || 'Aryan Tiwary');
-  const [email] = useState(user?.email || 'aryan@bachatplus.com');
+  const [name, setName] = useState(user?.displayName || user?.email?.split('@')[0] || 'Bachat+ User');
+  const [email] = useState(user?.email || 'user@bachatplus.com');
   const [toast, setToast] = useState('');
 
   const initial = name.charAt(0).toUpperCase();

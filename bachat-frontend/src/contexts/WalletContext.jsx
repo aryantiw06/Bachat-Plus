@@ -40,9 +40,18 @@ export function WalletProvider({ children }) {
     try {
       setSyncStatus('Saving');
       const [walletData, paymentsData, investmentsBundle] = await Promise.all([
-        walletService.getWallet(),
-        paymentService.getPayments({ page: 1, limit: 20 }),
-        investmentService.getInvestments(),
+        walletService.getWallet().catch((err) => {
+          console.warn('Wallet fetch warning:', err?.message || err);
+          return null;
+        }),
+        paymentService.getPayments({ page: 1, limit: 20 }).catch((err) => {
+          console.warn('Payments fetch warning:', err?.message || err);
+          return null;
+        }),
+        investmentService.getInvestments().catch((err) => {
+          console.warn('Investments fetch warning:', err?.message || err);
+          return null;
+        }),
       ]);
 
       if (walletData) {
@@ -54,7 +63,7 @@ export function WalletProvider({ children }) {
       }
 
       if (paymentsData && paymentsData.transactions) {
-        const formattedTxns = paymentsData.transactions.map(tx => ({
+        const formattedTxns = paymentsData.transactions.map((tx) => ({
           id: tx.id,
           merchantName: tx.merchant,
           merchant: tx.merchant,
@@ -65,7 +74,7 @@ export function WalletProvider({ children }) {
           roundUp: tx.roundUp,
           roundedUp: (tx.amount || 0) + (tx.roundUp || 0),
           merchantReceives: tx.amount,
-          timestamp: tx.createdAt || new Date().toISOString()
+          timestamp: tx.createdAt || new Date().toISOString(),
         }));
         setTransactions(formattedTxns);
       }
@@ -96,6 +105,7 @@ export function WalletProvider({ children }) {
 
   useEffect(() => {
     if (user) {
+      setLoadingWallet(true);
       refreshWallet();
     } else {
       setInvestmentWallet(0);

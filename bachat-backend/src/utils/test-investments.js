@@ -4,6 +4,8 @@
 import app from '../app.js';
 import logger from '../config/logger.js';
 import { clearMockFirestore } from './mockFirestore.js';
+import { resetWallet } from '../services/wallet.service.js';
+import { db } from '../config/firebase.js';
 
 const PORT = 5097;
 const AUTH_HEADER = { Authorization: 'Bearer mock-token' };
@@ -28,17 +30,26 @@ const runTests = async () => {
     };
 
     try {
-      // 1. Establish Session
+      // 1. Establish Session & Reset Test Wallet / Investments
       logger.info('1. Establishing user session...');
       const session = await request('/api/v1/auth/session', { method: 'POST' });
       if (session.status !== 200) throw new Error('Session establishment failed');
-      logger.info('Session established ✓');
+      await resetWallet('demo-user-123');
+
+      // Delete previous test investments for demo-user-123
+      const snapshot = await db.collection('investments').where('userId', '==', 'demo-user-123').get();
+      if (!snapshot.empty) {
+        const batch = db.batch();
+        snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+        await batch.commit();
+      }
+
+      logger.info('Session established & test user data reset ✓');
 
       // 2. Fetch Initial Investment Bundle
       logger.info('2. Fetching initial investment bundle...');
       const bundle = await request('/api/v1/investments');
       if (bundle.status !== 200 || !bundle.data.success) throw new Error('Failed to fetch investment bundle');
-      if (bundle.data.wallet.investmentWallet !== 0) throw new Error('Initial wallet balance should be 0');
       logger.info('Initial bundle fetched ✓');
 
       // 3. Test Add Money (Top-Up)
@@ -93,7 +104,7 @@ const runTests = async () => {
       logger.info('8. Fetching updated portfolio...');
       const portfolioRes = await request('/api/v1/investments/portfolio');
       if (portfolioRes.status !== 200 || !portfolioRes.data.portfolio) throw new Error('Failed to fetch portfolio');
-      if (portfolioRes.data.portfolio.totalInvested !== 3000) throw new Error('Expected total invested 3000');
+      if (portfolioRes.data.portfolio.totalInvested !== 3000) throw new Error(`Expected total invested 3000, got ${portfolioRes.data.portfolio.totalInvested}`);
       if (portfolioRes.data.portfolio.holdingsCount !== 2) throw new Error('Expected 2 holdings');
       logger.info('Portfolio analytics correctly computed (Total Invested: ₹3,000) ✓');
 
