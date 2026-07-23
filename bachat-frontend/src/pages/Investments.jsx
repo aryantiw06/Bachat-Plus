@@ -279,10 +279,14 @@ export default function Investments() {
     goalProgress,
     totalTransactions,
     loadingWallet,
+    investments,
+    invest,
   } = useWallet();
 
   // ---- Investment Simulator State ----
   const [simAmount, setSimAmount] = useState('');
+  const [investingProductId, setInvestingProductId] = useState(null);
+  const [investmentFeedback, setInvestmentFeedback] = useState(null);
   const simValue = parseFloat(simAmount) || 0;
   const simCapped = Math.min(simValue, investmentWallet);
   const simRemaining = Math.max(investmentWallet - simCapped, 0);
@@ -295,6 +299,24 @@ export default function Investments() {
     [investmentWallet]
   );
 
+  async function handleInvest(product) {
+    if (investmentWallet < product.minInvestment || investingProductId) return;
+
+    setInvestmentFeedback(null);
+    setInvestingProductId(product.id);
+    const result = await invest({
+      amount: product.minInvestment,
+      investmentType: product.id,
+      riskLevel: product.risk,
+    });
+    setInvestingProductId(null);
+    setInvestmentFeedback(
+      result.success
+        ? { type: 'success', message: `₹${product.minInvestment} invested in ${product.name}.` }
+        : { type: 'error', message: result.error || 'Investment could not be completed.' }
+    );
+  }
+
   if (loadingWallet) {
     return <PageLoader label="Loading investments…" />;
   }
@@ -305,6 +327,19 @@ export default function Investments() {
         title="Investments"
         subtitle="Grow your round-up savings into real wealth"
       />
+
+      {investmentFeedback && (
+        <div
+          role="status"
+          className={`mb-5 rounded-xl px-4 py-3 text-sm font-semibold ${
+            investmentFeedback.type === 'success'
+              ? 'bg-success/10 text-success border border-success/20'
+              : 'bg-danger/10 text-danger border border-danger/20'
+          }`}
+        >
+          {investmentFeedback.message}
+        </div>
+      )}
 
       <motion.div variants={stagger} initial="hidden" animate="visible" className="space-y-6">
 
@@ -473,10 +508,11 @@ export default function Investments() {
                           variant={canInvest ? 'accent' : 'secondary'}
                           size="sm"
                           className="flex-1"
-                          disabled={!canInvest}
+                          disabled={!canInvest || investingProductId !== null}
+                          onClick={() => handleInvest(product)}
                           aria-label={canInvest ? `Invest in ${product.name}` : `Need ₹${product.minInvestment} to invest`}
                         >
-                          {canInvest ? 'Invest' : `Need ₹${product.minInvestment}`}
+                          {investingProductId === product.id ? 'Investing…' : canInvest ? 'Invest' : `Need ₹${product.minInvestment}`}
                         </Button>
                       </div>
                     </div>
@@ -658,7 +694,22 @@ export default function Investments() {
                 <h2 className="text-lg font-bold text-navy">Recent Investment Activity</h2>
               </div>
 
-              {/* Empty State — encouraging first investment */}
+              {investments.length > 0 ? (
+                <div className="space-y-3">
+                  {investments.map((investment) => {
+                    const product = INVESTMENT_PRODUCTS.find((item) => item.id === investment.investmentType);
+                    return (
+                      <div key={investment.id} className="flex items-center justify-between rounded-xl border border-border bg-bg px-4 py-3">
+                        <div>
+                          <p className="text-sm font-bold text-navy">{product?.name || investment.investmentType}</p>
+                          <p className="text-xs text-text-muted">{investment.riskLevel || '—'} risk · {new Date(investment.createdAt).toLocaleDateString('en-IN')}</p>
+                        </div>
+                        <p className="text-sm font-extrabold text-mint">₹{investment.amount.toLocaleString('en-IN')}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <div className="h-20 w-20 rounded-full bg-bg flex items-center justify-center mb-5 border border-border">
                   <Gem size={32} className="text-text-muted" />
@@ -679,6 +730,7 @@ export default function Investments() {
                   <ChevronRight size={16} className="ml-1" />
                 </Button>
               </div>
+              )}
             </div>
           </Card>
         </motion.div>

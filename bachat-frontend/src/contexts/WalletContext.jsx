@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import walletService from '../services/wallet.service';
 import paymentService from '../services/payment.service';
+import investmentService from '../services/investment.service';
 import { useAuth } from './AuthContext';
 
 const WalletContext = createContext();
@@ -14,6 +15,7 @@ export function WalletProvider({ children }) {
   const [totalTransactions, setTotalTransactions] = useState(0);
   const [lastTransactionAt, setLastTransactionAt] = useState('');
   const [transactions, setTransactions] = useState([]);
+  const [investments, setInvestments] = useState([]);
   
   // ---- Local UI Settings ----
   const [savingsGoal, setSavingsGoal] = useState(10000);
@@ -27,9 +29,10 @@ export function WalletProvider({ children }) {
   const refreshWallet = useCallback(async () => {
     try {
       setSyncStatus('Saving');
-      const [walletData, paymentsData] = await Promise.all([
+      const [walletData, paymentsData, investmentsData] = await Promise.all([
         walletService.getWallet(),
-        paymentService.getPayments({ page: 1, limit: 20 })
+        paymentService.getPayments({ page: 1, limit: 20 }),
+        investmentService.getInvestments(),
       ]);
 
       if (walletData) {
@@ -56,6 +59,7 @@ export function WalletProvider({ children }) {
         }));
         setTransactions(formattedTxns);
       }
+      setInvestments(investmentsData?.investments || []);
       setSyncStatus('Synced');
       setTimeout(() => setSyncStatus(''), 2000);
     } catch (err) {
@@ -74,6 +78,7 @@ export function WalletProvider({ children }) {
       setTotalRoundups(0);
       setTotalTransactions(0);
       setTransactions([]);
+      setInvestments([]);
       setLoadingWallet(false);
     }
   }, [user, refreshWallet]);
@@ -177,6 +182,28 @@ export function WalletProvider({ children }) {
     [refreshWallet]
   );
 
+  const invest = useCallback(async ({ amount, investmentType, riskLevel }) => {
+    setSyncStatus('Saving');
+    try {
+      const res = await investmentService.createInvestment({ amount, investmentType, riskLevel });
+      if (!res?.success) return { success: false, error: 'Investment could not be completed.' };
+
+      const wallet = res.wallet || {};
+      setInvestmentWallet(wallet.walletBalance ?? 0);
+      setTotalRoundups(wallet.totalRoundups ?? 0);
+      setTotalTransactions(wallet.totalTransactions ?? 0);
+      setLastTransactionAt(wallet.lastTransactionAt ?? '');
+      setInvestments((current) => [res.investment, ...current.filter((item) => item.id !== res.investment.id)]);
+
+      await refreshWallet();
+      setSyncStatus('Synced');
+      return res;
+    } catch (err) {
+      setSyncStatus('Failed');
+      return { success: false, error: err.message || 'Investment could not be completed.' };
+    }
+  }, [refreshWallet]);
+
   const value = {
     // Backend Stored State
     investmentWallet,
@@ -184,6 +211,7 @@ export function WalletProvider({ children }) {
     totalTransactions,
     lastTransactionAt,
     transactions,
+    investments,
     savingsGoal,
     goalName,
 
@@ -200,6 +228,7 @@ export function WalletProvider({ children }) {
     syncStatus,
     refreshWallet,
     processRoundUpPayment,
+    invest,
     setSavingsGoal,
     setGoalName,
   };

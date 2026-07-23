@@ -24,6 +24,7 @@ import premiumRoutes from './routes/premium.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import profileRoutes from './routes/profile.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
+import investmentRoutes from './routes/investment.routes.js';
 
 const app = express();
 
@@ -137,6 +138,7 @@ app.use(`${apiPrefix}/notification`, notificationRoutes);
 app.use(`${apiPrefix}/notifications`, notificationRoutes); // Plural alias
 app.use(`${apiPrefix}/profile`, profileRoutes);
 app.use(`${apiPrefix}/settings`, settingsRoutes);
+app.use(`${apiPrefix}/investments`, investmentRoutes);
 
 // ============================================
 // ERROR HANDLING MIDDLEWARE
