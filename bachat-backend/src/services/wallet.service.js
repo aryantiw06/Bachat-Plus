@@ -142,6 +142,13 @@ export async function resetWallet(uid) {
 
   await db.collection(COLLECTION).doc(uid).set(updates, { merge: true });
 
+  const txSnapshot = await db.collection('transactions').where('userId', '==', uid).get();
+  if (!txSnapshot.empty) {
+    const batch = db.batch();
+    txSnapshot.docs.forEach((doc) => batch.delete(doc.ref));
+    await batch.commit();
+  }
+
   logger.info('Wallet reset.', { event: 'wallet.reset', uid });
 
   return {

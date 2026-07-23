@@ -50,6 +50,7 @@ const runTests = async () => {
       logger.info('Establishing session...');
       const session = await request('/api/v1/auth/session', { method: 'POST' });
       if (session.status !== 200) throw new Error('Session failed');
+      await request('/api/v1/wallet/reset', { method: 'POST' });
 
       // Test invalid amount → 400
       logger.info('Testing invalid amount...');

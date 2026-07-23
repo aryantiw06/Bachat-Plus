@@ -185,20 +185,15 @@ export async function getPaymentHistory(uid, query = {}) {
     const snapshot = await db
       .collection(COLLECTION)
       .where('userId', '==', uid)
-      .orderBy('createdAt', 'desc')
-      .offset(offset)
-      .limit(limit)
       .get();
 
-    const transactions = snapshot.docs.map((doc) => doc.data());
+    const allTransactions = snapshot.docs
+      .map((doc) => doc.data())
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
-    const totalSnapshot = await db
-      .collection(COLLECTION)
-      .where('userId', '==', uid)
-      .get();
-
-    const total = totalSnapshot.size;
+    const total = allTransactions.length;
     const totalPages = Math.ceil(total / limit) || 1;
+    const transactions = allTransactions.slice(offset, offset + limit);
 
     return {
       transactions,
