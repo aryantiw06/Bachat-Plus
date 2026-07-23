@@ -10,7 +10,7 @@ export const settingsService = {
   },
   updateSettings: async (data) => {
     try {
-      return await api.patch('/settings', data);
+      return await api.put('/settings/update', data);
     } catch {
       return { success: true, settings: data };
     }

@@ -10,7 +10,7 @@ export const profileService = {
   },
   updateProfile: async (data) => {
     try {
-      return await api.patch('/profile', data);
+      return await api.put('/profile/update', data);
     } catch {
       return { success: true, profile: data };
     }

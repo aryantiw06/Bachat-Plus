@@ -1,11 +1,17 @@
 import axios from 'axios';
 import { auth } from '../firebase';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
+const configuredApiUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
 
-if (!API_BASE_URL) {
+if (!configuredApiUrl) {
   throw new Error('VITE_API_URL must be configured with the Render API URL.');
 }
+
+// VITE_API_URL may be supplied as the Render origin or as the full API prefix.
+// Normalize it once so every service below can use paths such as `/payments`.
+const API_BASE_URL = configuredApiUrl.endsWith('/api/v1')
+  ? configuredApiUrl
+  : `${configuredApiUrl}/api/v1`;
 
 const api = axios.create({
   baseURL: API_BASE_URL,

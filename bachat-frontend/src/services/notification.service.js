@@ -10,7 +10,7 @@ export const notificationService = {
   },
   markAsRead: async (id) => {
     try {
-      return await api.patch(`/notifications/${id}/read`);
+      return await api.put(`/notifications/${id}/read`);
     } catch {
       return { success: true };
     }

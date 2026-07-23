@@ -3,14 +3,14 @@ import api from './api';
 export const premiumService = {
   getPremiumStatus: async () => {
     try {
-      return await api.get('/premium');
+      return await api.get('/premium/subscription');
     } catch {
       return { isPremium: false };
     }
   },
   activatePremium: async () => {
     try {
-      return await api.post('/premium/activate');
+      return await api.post('/premium/upgrade');
     } catch {
       return { success: true, isPremium: true };
     }
