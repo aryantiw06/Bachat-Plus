@@ -59,18 +59,19 @@ export async function updateWallet(uid, updates) {
 }
 
 /**
- * Return wallet summary for GET /wallet.
+ * Return wallet summary for GET /wallet. Auto-creates if missing.
  */
 export async function getWalletSummary(uid) {
-  const wallet = await getWallet(uid);
+  let wallet = await getWallet(uid);
   if (!wallet) {
-    throw new NotFoundError('Wallet not found');
+    wallet = await createWallet(uid);
   }
 
   return {
-    walletBalance: wallet.walletBalance ?? 0,
-    totalRoundups: wallet.totalRoundups ?? 0,
+    walletBalance: wallet.walletBalance ?? wallet.investmentWallet ?? 0,
+    totalRoundups: wallet.totalRoundups ?? wallet.lifetimeSavings ?? 0,
     totalTransactions: wallet.totalTransactions ?? 0,
+    lastTransactionAt: wallet.lastTransactionAt || null,
   };
 }
 
@@ -78,14 +79,14 @@ export async function getWalletSummary(uid) {
  * Apply round-up credit after a payment.
  */
 export async function applyPaymentToWallet(uid, roundUp) {
-  const wallet = await getWallet(uid);
+  let wallet = await getWallet(uid);
   if (!wallet) {
-    throw new NotFoundError('Wallet not found');
+    wallet = await createWallet(uid);
   }
 
   const now = new Date().toISOString();
-  const walletBalance = (wallet.walletBalance ?? 0) + roundUp;
-  const totalRoundups = (wallet.totalRoundups ?? 0) + roundUp;
+  const walletBalance = (wallet.walletBalance ?? wallet.investmentWallet ?? 0) + roundUp;
+  const totalRoundups = (wallet.totalRoundups ?? wallet.lifetimeSavings ?? 0) + roundUp;
   const totalTransactions = (wallet.totalTransactions ?? 0) + 1;
 
   const updates = {
@@ -121,9 +122,9 @@ export async function applyPaymentToWallet(uid, roundUp) {
  * Reset wallet payment totals (development only).
  */
 export async function resetWallet(uid) {
-  const wallet = await getWallet(uid);
+  let wallet = await getWallet(uid);
   if (!wallet) {
-    throw new NotFoundError('Wallet not found');
+    wallet = await createWallet(uid);
   }
 
   const now = new Date().toISOString();
@@ -151,17 +152,17 @@ export async function resetWallet(uid) {
 }
 
 /**
- * Ensure wallet exists or throw.
+ * Ensure wallet exists or auto-create.
  */
 export async function requireWallet(uid) {
   try {
-    const wallet = await getWallet(uid);
+    let wallet = await getWallet(uid);
     if (!wallet) {
-      throw new NotFoundError('Wallet not found');
+      wallet = await createWallet(uid);
     }
     return wallet;
   } catch (error) {
-    if (error instanceof NotFoundError) throw error;
+    logger.error('Failed to ensure wallet existence:', error);
     throw new FirestoreUnavailableError();
   }
 }

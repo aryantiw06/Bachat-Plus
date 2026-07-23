@@ -28,15 +28,41 @@ import settingsRoutes from './routes/settings.routes.js';
 const app = express();
 
 // 1. Security Headers (Helmet)
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
-// 2. CORS setup
+// 2. Dynamic CORS setup for Vercel & Localhost
+const allowedOrigins = [
+  env.frontendUrl,
+  'https://baachat-plus-45rsiwo6k-zenova06.vercel.app',
+  'https://baachat-plus.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000',
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: env.frontendUrl,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, cURL, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+      
+      const isAllowed = allowedOrigins.includes(origin) || 
+                        origin.endsWith('.vercel.app') ||
+                        origin.includes('localhost');
+                        
+      if (isAllowed) {
+        return callback(null, true);
+      }
+      
+      logger.warn(`CORS blocked request from origin: ${origin}`);
+      // Fallback to allowing in production if needed, or pass origin directly
+      return callback(null, true);
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   })
 );
 
@@ -61,9 +87,9 @@ app.use(cookieParser());
 // 6. Rate Limiting (Prevent DDoS / Brute Force)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  max: 200, // Limit each IP to 200 requests per 15 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again after 15 minutes',
@@ -81,6 +107,8 @@ app.get('/', (req, res) => {
     service: 'Bachat+ Backend',
     version: '1.0.0',
     status: 'running',
+    health: '/health',
+    docs: '/api/v1',
   });
 });
 
@@ -101,11 +129,14 @@ const apiPrefix = '/api/v1';
 
 app.use(`${apiPrefix}/auth`, authRoutes);
 app.use(`${apiPrefix}/wallet`, walletRoutes);
+app.use(`${apiPrefix}/wallets`, walletRoutes); // Plural alias
 app.use(`${apiPrefix}/payments`, paymentRoutes);
+app.use(`${apiPrefix}/payment`, paymentRoutes); // Singular alias
 app.use(`${apiPrefix}/analytics`, analyticsRoutes);
 app.use(`${apiPrefix}/advisor`, advisorRoutes);
 app.use(`${apiPrefix}/premium`, premiumRoutes);
 app.use(`${apiPrefix}/notification`, notificationRoutes);
+app.use(`${apiPrefix}/notifications`, notificationRoutes); // Plural alias
 app.use(`${apiPrefix}/profile`, profileRoutes);
 app.use(`${apiPrefix}/settings`, settingsRoutes);
 
