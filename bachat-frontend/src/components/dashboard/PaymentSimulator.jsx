@@ -40,7 +40,6 @@ export default function PaymentSimulator({ onPayment }) {
   const [flowState, setFlowState] = useState(STATES.IDLE);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
-  const [walletUpdated, setWalletUpdated] = useState(false);
 
   // Validate the entered amount
   function validate(value) {
@@ -69,23 +68,31 @@ export default function PaymentSimulator({ onPayment }) {
     const roundup = roundedUp - purchaseAmount;
 
     setFlowState(STATES.PROCESSING);
-    setWalletUpdated(false);
-
     // Simulate a realistic processing delay
     await new Promise((resolve) => setTimeout(resolve, 1800));
 
-    const transaction = {
-      id: Date.now(),
+    const paymentResult = await onPayment({
       purchaseAmount,
-      roundedUp,
-      roundup,
-      merchantReceives: purchaseAmount,
-      timestamp: new Date(),
-    };
+      merchantName: 'Dashboard Payment',
+      category: 'general',
+    });
 
-    setResult(transaction);
+    if (!paymentResult?.success) {
+      setError(paymentResult?.error || 'Payment processing failed.');
+      setFlowState(STATES.IDLE);
+      return;
+    }
+
+    const transaction = paymentResult.transaction;
+    setResult({
+      id: transaction.id,
+      purchaseAmount: transaction.amount,
+      roundedUp: transaction.amount + transaction.roundUp,
+      roundup: transaction.roundUp,
+      merchantReceives: transaction.amount,
+      timestamp: new Date(transaction.createdAt),
+    });
     setFlowState(STATES.COMPLETE);
-    // Note: onPayment is triggered at the end of the animation sequence
   }
 
   // Reset for a new payment
@@ -94,7 +101,6 @@ export default function PaymentSimulator({ onPayment }) {
     setResult(null);
     setFlowState(STATES.IDLE);
     setError('');
-    setWalletUpdated(false);
   }
 
   return (
@@ -281,12 +287,6 @@ export default function PaymentSimulator({ onPayment }) {
                   initial={{ opacity: 0, y: 20, scale: 0.95 }} 
                   animate={{ opacity: 1, y: 0, scale: 1 }} 
                   transition={{ delay: 2.7, type: 'spring', stiffness: 150 }}
-                  onAnimationComplete={() => {
-                    if (!walletUpdated) {
-                      onPayment(result); // Triggers Dashboard state update
-                      setWalletUpdated(true);
-                    }
-                  }}
                   className="mt-6 flex items-center gap-4 relative z-10"
                 >
                   <div className="h-12 w-12 rounded-full bg-mint text-navy shadow-[0_0_15px_rgba(2,195,154,0.4)] flex items-center justify-center shrink-0">

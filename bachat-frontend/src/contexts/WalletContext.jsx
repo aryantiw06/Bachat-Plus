@@ -139,7 +139,31 @@ export function WalletProvider({ children }) {
         const res = await paymentService.createPayment(payload);
 
         if (res && res.success) {
-          // Immediately pull fresh Single Source of Truth backend state
+          // Apply the committed response immediately so all context consumers
+          // re-render before the follow-up read completes.
+          const wallet = res.wallet || {};
+          setInvestmentWallet(wallet.walletBalance ?? 0);
+          setTotalRoundups(wallet.totalRoundups ?? 0);
+          setTotalTransactions(wallet.totalTransactions ?? 0);
+          setLastTransactionAt(wallet.lastTransactionAt ?? '');
+          setTransactions((current) => [
+            {
+              id: res.transaction.id,
+              merchantName: res.transaction.merchant,
+              merchant: res.transaction.merchant,
+              category: res.transaction.category || 'General',
+              purchaseAmount: res.transaction.amount,
+              amount: res.transaction.amount,
+              roundup: res.transaction.roundUp,
+              roundUp: res.transaction.roundUp,
+              roundedUp: res.transaction.amount + res.transaction.roundUp,
+              merchantReceives: res.transaction.amount,
+              timestamp: res.transaction.createdAt,
+            },
+            ...current.filter((transaction) => transaction.id !== res.transaction.id),
+          ].slice(0, 20));
+
+          // Re-read committed Firestore state to keep this context authoritative.
           await refreshWallet();
           setSyncStatus('Synced');
           return { success: true, ...res };
