@@ -2,7 +2,7 @@
 // payment.service.js — Payment & Transaction Engine
 // ============================================
 import { v4 as uuidv4 } from 'uuid';
-import { db, firebaseInitialized } from '../config/firebase.js';
+import { db } from '../config/firebase.js';
 import logger from '../config/logger.js';
 import { calculateRoundUp } from '../utils/roundUp.js';
 import {
@@ -78,8 +78,7 @@ export async function createPayment(uid, { amount, merchant, category }) {
   const transaction = buildTransaction({ uid, amount, roundUp, merchant, category });
 
   try {
-    if (firebaseInitialized && typeof db.batch === 'function') {
-      const batch = db.batch();
+    const batch = db.batch();
 
       batch.set(db.collection(COLLECTION).doc(transaction.id), transaction);
 
@@ -124,12 +123,7 @@ export async function createPayment(uid, { amount, merchant, category }) {
         { merge: true }
       );
 
-      await batch.commit();
-    } else {
-      await db.collection(COLLECTION).doc(transaction.id).set(transaction);
-      await walletService.applyPaymentToWallet(uid, roundUp);
-      await analyticsService.applyPaymentToAnalytics(uid, amount, roundUp);
-    }
+    await batch.commit();
 
     logger.info('Payment created.', {
       event: 'payment.created',

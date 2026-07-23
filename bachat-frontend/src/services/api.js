@@ -1,9 +1,11 @@
 import axios from 'axios';
 import { auth } from '../firebase';
 
-// Primary API Base URL: Uses environment variable VITE_API_URL if defined,
-// otherwise defaults to deployed Render backend URL in production.
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://baachat-plus.onrender.com/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
+
+if (!API_BASE_URL) {
+  throw new Error('VITE_API_URL must be configured with the Render API URL.');
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -18,15 +20,14 @@ api.interceptors.request.use(
   async (config) => {
     try {
       const user = auth.currentUser;
-      if (user) {
-        const token = await user.getIdToken();
-        config.headers.Authorization = `Bearer ${token}`;
-      } else {
-        // Fallback for dev mode when user is not signed in
-        config.headers.Authorization = `Bearer dev-user-123`;
+      if (!user) {
+        return Promise.reject(new Error('You must be signed in to call the API.'));
       }
+      const token = await user.getIdToken(true);
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
     } catch (err) {
-      config.headers.Authorization = `Bearer dev-user-123`;
+      return Promise.reject(err);
     }
     return config;
   },

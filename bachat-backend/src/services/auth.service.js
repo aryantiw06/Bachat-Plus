@@ -1,7 +1,7 @@
 // ============================================
 // auth.service.js — Authentication & User Initialization
 // ============================================
-import { auth, db, firebaseInitialized } from '../config/firebase.js';
+import { auth, db } from '../config/firebase.js';
 import logger from '../config/logger.js';
 import {
   UnauthorizedError,
@@ -20,11 +20,8 @@ import * as notificationService from './notification.service.js';
  * Extract Bearer token from Authorization header.
  */
 export function extractBearerToken(authorizationHeader) {
-  if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
-    return null;
-  }
-  const token = authorizationHeader.split(' ')[1];
-  return token || null;
+  if (typeof authorizationHeader !== 'string') return null;
+  return authorizationHeader.match(/^Bearer\s+(.+)$/i)?.[1]?.trim() || null;
 }
 
 /**
@@ -33,16 +30,6 @@ export function extractBearerToken(authorizationHeader) {
 export async function verifyIdToken(token) {
   if (!token) {
     throw new UnauthorizedError('Not authorized — no token provided');
-  }
-
-  if (token === 'mock-token' || token === 'dev-user-123' || token.startsWith('dev-')) {
-    return {
-      uid: 'demo-user-123',
-      email: 'demo@bachatplus.com',
-      name: 'Demo User',
-      photoURL: null,
-      provider: 'google.com',
-    };
   }
 
   try {
@@ -123,8 +110,7 @@ async function initializeNewUser(userClaims) {
   const notifications = notificationService.buildDefaultNotifications(uid);
 
   try {
-    if (firebaseInitialized && typeof db.batch === 'function') {
-      const batch = db.batch();
+    const batch = db.batch();
 
       batch.set(db.collection('users').doc(uid), profile, { merge: true });
       batch.set(db.collection('wallets').doc(uid), wallet, { merge: true });
@@ -133,17 +119,7 @@ async function initializeNewUser(userClaims) {
       batch.set(db.collection('analytics').doc(uid), analytics, { merge: true });
       batch.set(db.collection('notifications').doc(uid), notifications, { merge: true });
 
-      await batch.commit();
-    } else {
-      await Promise.all([
-        profileService.createProfile(profile),
-        walletService.createWallet(uid),
-        settingsService.createSettings(uid),
-        premiumService.createPremium(uid),
-        analyticsService.createAnalytics(uid),
-        notificationService.createNotifications(uid),
-      ]);
-    }
+    await batch.commit();
 
     logger.info('Firestore user initialization completed.', {
       event: 'auth.user_initialized',
@@ -292,9 +268,7 @@ export async function getCurrentUser(uid) {
  */
 export async function logout(uid) {
   try {
-    if (firebaseInitialized && typeof auth.revokeRefreshTokens === 'function') {
-      await auth.revokeRefreshTokens(uid);
-    }
+    await auth.revokeRefreshTokens(uid);
 
     logger.info('User logged out successfully.', {
       event: 'auth.logout_success',

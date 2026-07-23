@@ -12,7 +12,7 @@
 //   → Your .env is already in .gitignore, so keys stay private.
 // ============================================
 
-import { initializeApp } from 'firebase/app';
+import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
@@ -46,10 +46,18 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+const missingConfig = Object.entries(firebaseConfig)
+  .filter(([, value]) => !value)
+  .map(([key]) => `VITE_FIREBASE_${key.replace(/([A-Z])/g, '_$1').toUpperCase()}`);
+
+if (missingConfig.length > 0) {
+  throw new Error(`Missing Firebase web configuration: ${missingConfig.join(', ')}`);
+}
+
 // ---- Initialize Firebase ----
 // initializeApp() creates a Firebase App instance. You only call this ONCE.
 // All other Firebase services (Auth, Firestore, etc.) reference this instance.
-const app = initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 // ---- Initialize Firebase Authentication ----
 // getAuth() returns the Auth service tied to the app above.

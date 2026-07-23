@@ -34,9 +34,7 @@ app.use(helmet({
 
 // 2. Dynamic CORS setup for Vercel & Localhost
 const allowedOrigins = [
-  env.frontendUrl,
-  'https://baachat-plus-45rsiwo6k-zenova06.vercel.app',
-  'https://baachat-plus.vercel.app',
+  ...env.frontendUrl.split(',').map((origin) => origin.trim()),
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:5000',
@@ -48,17 +46,16 @@ app.use(
       // Allow requests with no origin (like mobile apps, cURL, Postman, server-to-server)
       if (!origin) return callback(null, true);
       
-      const isAllowed = allowedOrigins.includes(origin) || 
-                        origin.endsWith('.vercel.app') ||
-                        origin.includes('localhost');
+      const isAllowed = allowedOrigins.includes(origin) ||
+                        /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin) ||
+                        /^http:\/\/localhost(?::\d+)?$/i.test(origin);
                         
       if (isAllowed) {
         return callback(null, true);
       }
       
       logger.warn(`CORS blocked request from origin: ${origin}`);
-      // Fallback to allowing in production if needed, or pass origin directly
-      return callback(null, true);
+      return callback(new Error('Origin is not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -132,6 +129,7 @@ app.use(`${apiPrefix}/wallet`, walletRoutes);
 app.use(`${apiPrefix}/wallets`, walletRoutes); // Plural alias
 app.use(`${apiPrefix}/payments`, paymentRoutes);
 app.use(`${apiPrefix}/payment`, paymentRoutes); // Singular alias
+app.use(`${apiPrefix}/transactions`, paymentRoutes); // Transaction history alias
 app.use(`${apiPrefix}/analytics`, analyticsRoutes);
 app.use(`${apiPrefix}/advisor`, advisorRoutes);
 app.use(`${apiPrefix}/premium`, premiumRoutes);

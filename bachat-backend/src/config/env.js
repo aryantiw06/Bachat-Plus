@@ -28,7 +28,6 @@ export const env = {
   isProduction: process.env.NODE_ENV === 'production',
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   jwtSecret: process.env.JWT_SECRET || 'fallback-secret-key-replace-in-production',
-  enableMockAuth: process.env.ENABLE_MOCK_AUTH === 'true',
   firebase: {
     projectId: process.env.FIREBASE_PROJECT_ID,
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
