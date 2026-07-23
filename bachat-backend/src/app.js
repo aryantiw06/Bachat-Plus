@@ -101,7 +101,7 @@ const apiPrefix = '/api/v1';
 
 app.use(`${apiPrefix}/auth`, authRoutes);
 app.use(`${apiPrefix}/wallet`, walletRoutes);
-app.use(`${apiPrefix}/payment`, paymentRoutes);
+app.use(`${apiPrefix}/payments`, paymentRoutes);
 app.use(`${apiPrefix}/analytics`, analyticsRoutes);
 app.use(`${apiPrefix}/advisor`, advisorRoutes);
 app.use(`${apiPrefix}/premium`, premiumRoutes);

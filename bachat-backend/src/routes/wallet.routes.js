@@ -1,19 +1,14 @@
 // ============================================
-// wallet.routes.js — Wallet Routes Placeholder
+// wallet.routes.js — Wallet Routes
 // ============================================
 import { Router } from 'express';
+import { protect } from '../middleware/auth.middleware.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import * as walletController from '../controllers/wallet.controller.js';
 
 const router = Router();
 
-const notImplemented = (req, res) => {
-  res.status(501).json({
-    success: false,
-    message: 'Not implemented yet',
-  });
-};
-
-router.get('/', notImplemented);
-router.post('/sync', notImplemented);
-router.post('/goal', notImplemented);
+router.get('/', protect, asyncHandler(walletController.getWallet));
+router.post('/reset', protect, asyncHandler(walletController.resetWallet));
 
 export default router;

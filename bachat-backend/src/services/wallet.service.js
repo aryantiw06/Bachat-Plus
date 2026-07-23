@@ -3,6 +3,7 @@
 // ============================================
 import { db } from '../config/firebase.js';
 import logger from '../config/logger.js';
+import { NotFoundError, FirestoreUnavailableError } from '../utils/errors.js';
 
 const COLLECTION = 'wallets';
 
@@ -13,6 +14,10 @@ export function buildDefaultWallet(uid) {
   const now = new Date().toISOString();
   return {
     uid,
+    walletBalance: 0,
+    totalRoundups: 0,
+    totalTransactions: 0,
+    lastTransactionAt: null,
     investmentWallet: 0,
     todayRoundup: 0,
     monthlyTotal: 0,
@@ -51,4 +56,112 @@ export async function updateWallet(uid, updates) {
   updates.updatedAt = new Date().toISOString();
   await db.collection(COLLECTION).doc(uid).set(updates, { merge: true });
   return { uid, ...updates };
+}
+
+/**
+ * Return wallet summary for GET /wallet.
+ */
+export async function getWalletSummary(uid) {
+  const wallet = await getWallet(uid);
+  if (!wallet) {
+    throw new NotFoundError('Wallet not found');
+  }
+
+  return {
+    walletBalance: wallet.walletBalance ?? 0,
+    totalRoundups: wallet.totalRoundups ?? 0,
+    totalTransactions: wallet.totalTransactions ?? 0,
+  };
+}
+
+/**
+ * Apply round-up credit after a payment.
+ */
+export async function applyPaymentToWallet(uid, roundUp) {
+  const wallet = await getWallet(uid);
+  if (!wallet) {
+    throw new NotFoundError('Wallet not found');
+  }
+
+  const now = new Date().toISOString();
+  const walletBalance = (wallet.walletBalance ?? 0) + roundUp;
+  const totalRoundups = (wallet.totalRoundups ?? 0) + roundUp;
+  const totalTransactions = (wallet.totalTransactions ?? 0) + 1;
+
+  const updates = {
+    walletBalance,
+    totalRoundups,
+    totalTransactions,
+    lastTransactionAt: now,
+    investmentWallet: walletBalance,
+    lifetimeSavings: totalRoundups,
+    updatedAt: now,
+  };
+
+  await db.collection(COLLECTION).doc(uid).set(updates, { merge: true });
+
+  logger.info('Wallet updated.', {
+    event: 'wallet.updated',
+    uid,
+    roundUp,
+    walletBalance,
+    totalRoundups,
+    totalTransactions,
+  });
+
+  return {
+    walletBalance,
+    totalRoundups,
+    totalTransactions,
+    lastTransactionAt: now,
+  };
+}
+
+/**
+ * Reset wallet payment totals (development only).
+ */
+export async function resetWallet(uid) {
+  const wallet = await getWallet(uid);
+  if (!wallet) {
+    throw new NotFoundError('Wallet not found');
+  }
+
+  const now = new Date().toISOString();
+  const updates = {
+    walletBalance: 0,
+    totalRoundups: 0,
+    totalTransactions: 0,
+    lastTransactionAt: null,
+    investmentWallet: 0,
+    lifetimeSavings: 0,
+    todayRoundup: 0,
+    monthlyTotal: 0,
+    updatedAt: now,
+  };
+
+  await db.collection(COLLECTION).doc(uid).set(updates, { merge: true });
+
+  logger.info('Wallet reset.', { event: 'wallet.reset', uid });
+
+  return {
+    walletBalance: 0,
+    totalRoundups: 0,
+    totalTransactions: 0,
+  };
+}
+
+/**
+ * Ensure wallet exists or throw.
+ */
+export async function requireWallet(uid) {
+  try {
+    const wallet = await getWallet(uid);
+    if (!wallet) {
+      throw new NotFoundError('Wallet not found');
+    }
+    return wallet;
+  } catch (error) {
+    if (error instanceof NotFoundError) throw error;
+    throw new FirestoreUnavailableError();
+  }
 }

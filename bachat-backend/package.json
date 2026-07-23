@@ -6,7 +6,9 @@
   "main": "server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test:api": "node src/utils/test-api.js",
+    "test:payments": "node src/utils/test-payments.js"
   },
   "keywords": [],
   "author": "",

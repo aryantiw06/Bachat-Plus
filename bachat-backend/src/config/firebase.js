@@ -7,6 +7,7 @@ import { getAuth } from 'firebase-admin/auth';
 import * as admin from 'firebase-admin';
 import env from './env.js';
 import logger from './logger.js';
+import { createMockFirestore } from '../utils/mockFirestore.js';
 
 let db;
 let auth;
@@ -52,15 +53,7 @@ const createMockVerifyIdToken = () => async (token) => {
 };
 
 const setupMocks = () => {
-  db = {
-    collection: () => ({
-      doc: () => ({
-        get: async () => ({ exists: false, data: () => null }),
-        set: async () => ({ success: true }),
-        update: async () => ({ success: true }),
-      }),
-    }),
-  };
+  db = createMockFirestore();
 
   auth = {
     verifyIdToken: createMockVerifyIdToken(),
