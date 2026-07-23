@@ -1,92 +1,86 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import walletService from '../services/wallet.service';
+import paymentService from '../services/payment.service';
 import { useAuth } from './AuthContext';
 
 const WalletContext = createContext();
 
-const MAX_TRANSACTIONS = 20;
-
 export function WalletProvider({ children }) {
   const { user } = useAuth();
 
-  // ---- Persistent State (Saved to Firestore) ----
+  // ---- Backend-synced State ----
   const [investmentWallet, setInvestmentWallet] = useState(0);
+  const [totalRoundups, setTotalRoundups] = useState(0);
+  const [totalTransactions, setTotalTransactions] = useState(0);
+  const [lastTransactionAt, setLastTransactionAt] = useState('');
+  const [transactions, setTransactions] = useState([]);
+  
+  // ---- Local UI Settings ----
   const [savingsGoal, setSavingsGoal] = useState(10000);
   const [goalName, setGoalName] = useState('Emergency Fund');
-  const [transactions, setTransactions] = useState([]);
 
-  // ---- UI / App State ----
+  // ---- Loading / Sync Status ----
   const [loadingWallet, setLoadingWallet] = useState(true);
-  const [syncStatus, setSyncStatus] = useState(''); // 'Saving', 'Synced', 'Failed'
+  const [syncStatus, setSyncStatus] = useState('');
 
-  // ---- Load Data from Firestore when user logs in ----
-  useEffect(() => {
-    let isMounted = true;
+  // ---- Refresh Data from Backend API ----
+  const refreshWallet = useCallback(async () => {
+    try {
+      setSyncStatus('Saving');
+      const [walletData, paymentsData] = await Promise.all([
+        walletService.getWallet(),
+        paymentService.getPayments({ page: 1, limit: 20 })
+      ]);
 
-    async function fetchWallet() {
-      if (!user) {
-        // Reset state on logout
-        setInvestmentWallet(0);
-        setSavingsGoal(10000);
-        setGoalName('Emergency Fund');
-        setTransactions([]);
-        setLoadingWallet(false);
-        setSyncStatus('');
-        return;
+      if (walletData) {
+        setInvestmentWallet(walletData.walletBalance || 0);
+        setTotalRoundups(walletData.totalRoundups || 0);
+        setTotalTransactions(walletData.totalTransactions || 0);
+        setLastTransactionAt(walletData.lastTransactionAt || '');
       }
 
-      setLoadingWallet(true);
-      try {
-        const userRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(userRef);
-
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          if (isMounted) {
-            setInvestmentWallet(data.investmentWallet || 0);
-            setSavingsGoal(data.savingsGoal || 10000);
-            setGoalName(data.goalName || 'Emergency Fund');
-            // Restore dates from string if needed, though they stay strings from our save logic
-            setTransactions(data.transactions || []);
-          }
-        } else {
-          // Initialize new user
-          const initialData = {
-            investmentWallet: 0,
-            savingsGoal: 10000,
-            goalName: 'Emergency Fund',
-            transactions: [],
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-          };
-          await setDoc(userRef, initialData, { merge: true });
-          if (isMounted) {
-            setInvestmentWallet(0);
-            setSavingsGoal(10000);
-            setGoalName('Emergency Fund');
-            setTransactions([]);
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching wallet data:', err);
-        setSyncStatus('Failed');
-      } finally {
-        if (isMounted) setLoadingWallet(false);
+      if (paymentsData && paymentsData.transactions) {
+        // Map backend transaction schema to frontend friendly properties
+        const formattedTxns = paymentsData.transactions.map(tx => ({
+          id: tx.id,
+          merchantName: tx.merchant,
+          merchant: tx.merchant,
+          category: tx.category || 'General',
+          purchaseAmount: tx.amount,
+          amount: tx.amount,
+          roundup: tx.roundUp,
+          roundUp: tx.roundUp,
+          roundedUp: (tx.amount || 0) + (tx.roundUp || 0),
+          merchantReceives: tx.amount,
+          timestamp: tx.createdAt || new Date().toISOString()
+        }));
+        setTransactions(formattedTxns);
       }
+      setSyncStatus('Synced');
+      setTimeout(() => setSyncStatus(''), 2000);
+    } catch (err) {
+      console.error('Failed to load wallet data from backend:', err);
+      setSyncStatus('Failed');
+    } finally {
+      setLoadingWallet(false);
     }
+  }, []);
 
-    fetchWallet();
+  useEffect(() => {
+    if (user) {
+      refreshWallet();
+    } else {
+      setInvestmentWallet(0);
+      setTotalRoundups(0);
+      setTotalTransactions(0);
+      setTransactions([]);
+      setLoadingWallet(false);
+    }
+  }, [user, refreshWallet]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [user]);
-
-  // ---- Derived Values ----
+  // ---- Derived Values from Backend Data ----
   const now = new Date();
-  
-  // Calculate today's roundup
+
   const todayRoundup = transactions.reduce((sum, tx) => {
     const txDate = new Date(tx.timestamp);
     if (
@@ -94,120 +88,93 @@ export function WalletProvider({ children }) {
       txDate.getMonth() === now.getMonth() &&
       txDate.getFullYear() === now.getFullYear()
     ) {
-      return sum + tx.roundup;
+      return sum + (tx.roundup || 0);
     }
     return sum;
   }, 0);
 
-  // Calculate this month's roundup
   const monthlyTotal = transactions.reduce((sum, tx) => {
     const txDate = new Date(tx.timestamp);
     if (
       txDate.getMonth() === now.getMonth() &&
       txDate.getFullYear() === now.getFullYear()
     ) {
-      return sum + tx.roundup;
+      return sum + (tx.roundup || 0);
     }
     return sum;
   }, 0);
 
-  const goalProgress = savingsGoal > 0 
-    ? Math.min(Math.round((investmentWallet / savingsGoal) * 100), 100) 
+  const goalProgress = savingsGoal > 0
+    ? Math.min(Math.round((investmentWallet / savingsGoal) * 100), 100)
     : 0;
-    
-  const totalTransactions = transactions.length;
 
-  // ---- Analytics Derived Values ----
   const averageRoundup = totalTransactions > 0
-    ? Math.round(transactions.reduce((sum, tx) => sum + tx.roundup, 0) / totalTransactions)
+    ? Math.round(transactions.reduce((sum, tx) => sum + (tx.roundup || 0), 0) / totalTransactions * 100) / 100
     : 0;
 
-  const largestRoundup = totalTransactions > 0
-    ? Math.max(...transactions.map((tx) => tx.roundup))
+  const largestRoundup = transactions.length > 0
+    ? Math.max(...transactions.map((tx) => tx.roundup || 0))
     : 0;
 
-  // Category breakdown: { food: { spent: 500, roundup: 30, count: 3 }, ... }
   const categoryBreakdown = transactions.reduce((acc, tx) => {
     const cat = tx.category || 'other';
     if (!acc[cat]) acc[cat] = { spent: 0, roundup: 0, count: 0 };
-    acc[cat].spent += tx.purchaseAmount;
-    acc[cat].roundup += tx.roundup;
+    acc[cat].spent += tx.purchaseAmount || 0;
+    acc[cat].roundup += tx.roundup || 0;
     acc[cat].count += 1;
     return acc;
   }, {});
 
-  // ---- Unified Payment Processor ----
+  // ---- Unified Backend Payment Processor ----
   const processRoundUpPayment = useCallback(
-    async (transaction) => {
-      if (!user) return; // Must be logged in
-
+    async (transactionData) => {
       setSyncStatus('Saving');
-
-      // Optimistic UI updates
-      const newWalletValue = investmentWallet + (transaction.roundup || 0);
-      
-      // We stringify the timestamp before saving to keep it simple in React state
-      const serializedTx = {
-        ...transaction,
-        timestamp: transaction.timestamp.toISOString(),
-      };
-
-      const newTransactions = [serializedTx, ...transactions].slice(0, MAX_TRANSACTIONS);
-
-      // Save previous state in case of rollback
-      const prevWallet = investmentWallet;
-      const prevTransactions = transactions;
-
-      // Apply optimistic update
-      setInvestmentWallet(newWalletValue);
-      setTransactions(newTransactions);
-
-      // Firestore Write
       try {
-        const userRef = doc(db, 'users', user.uid);
-        await setDoc(
-          userRef,
-          {
-            investmentWallet: newWalletValue,
-            transactions: newTransactions,
-            updatedAt: serverTimestamp(),
-          },
-          { merge: true }
-        );
-        setSyncStatus('Synced');
-        
-        // Optional: clear synced message after a bit
-        setTimeout(() => setSyncStatus(''), 3000);
+        const payload = {
+          amount: transactionData.purchaseAmount || transactionData.amount,
+          merchant: transactionData.merchantName || transactionData.merchant,
+          category: transactionData.category || 'General'
+        };
+
+        const res = await paymentService.createPayment(payload);
+
+        if (res && res.success) {
+          // Immediately pull fresh Single Source of Truth backend state
+          await refreshWallet();
+          setSyncStatus('Synced');
+          return { success: true, ...res };
+        }
       } catch (err) {
-        console.error('Failed to sync payment:', err);
+        console.error('Payment processing failed:', err);
         setSyncStatus('Failed');
-        // Rollback on failure
-        setInvestmentWallet(prevWallet);
-        setTransactions(prevTransactions);
+        return { success: false, error: err.message };
       }
     },
-    [user, investmentWallet, transactions]
+    [refreshWallet]
   );
 
   const value = {
-    // Stored State
+    // Backend Stored State
     investmentWallet,
+    totalRoundups,
+    totalTransactions,
+    lastTransactionAt,
+    transactions,
     savingsGoal,
     goalName,
-    transactions,
-    // Derived State
+
+    // Derived Metrics
     todayRoundup,
     monthlyTotal,
     goalProgress,
-    totalTransactions,
-    // Analytics
     averageRoundup,
     largestRoundup,
     categoryBreakdown,
-    // Status State
+
+    // UI Status & Actions
     loadingWallet,
     syncStatus,
-    // Actions
+    refreshWallet,
     processRoundUpPayment,
     setSavingsGoal,
     setGoalName,

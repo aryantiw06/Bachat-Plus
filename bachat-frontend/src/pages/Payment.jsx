@@ -74,23 +74,36 @@ export default function Payment() {
     setError('');
     setFlowState(STATES.PROCESSING);
 
-    // Realistic processing delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const transactionPayload = {
+        purchaseAmount,
+        merchantName: merchant.trim(),
+        category,
+      };
 
-    const transaction = {
-      id: Date.now(),
-      merchantName: merchant.trim(),
-      category,
-      purchaseAmount,
-      roundedUp,
-      roundup: roundupAmount,
-      merchantReceives: purchaseAmount,
-      timestamp: new Date(),
-    };
+      const apiResult = await processRoundUpPayment(transactionPayload);
 
-    setResult(transaction);
-    setFlowState(STATES.COMPLETE);
-    processRoundUpPayment(transaction);
+      if (apiResult && apiResult.success) {
+        const txn = apiResult.transaction;
+        setResult({
+          id: txn.id,
+          merchantName: txn.merchant,
+          category: txn.category,
+          purchaseAmount: txn.amount,
+          roundedUp: (txn.amount || 0) + (txn.roundUp || 0),
+          roundup: txn.roundUp,
+          merchantReceives: txn.amount,
+          timestamp: new Date(txn.createdAt || Date.now()),
+        });
+        setFlowState(STATES.COMPLETE);
+      } else {
+        setError(apiResult?.error || 'Payment failed on backend server');
+        setFlowState(STATES.IDLE);
+      }
+    } catch (err) {
+      setError(err.message || 'Payment processing error');
+      setFlowState(STATES.IDLE);
+    }
   }
 
   return (

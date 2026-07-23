@@ -1,3 +1,4 @@
+
 // ============================================
 // firebase.js — Firebase Admin SDK Initialization
 // ============================================
@@ -139,4 +140,6 @@ const initFirebase = () => {
 initFirebase();
 
 export { admin, db, auth, firebaseInitialized };
+
+
 export default db;
