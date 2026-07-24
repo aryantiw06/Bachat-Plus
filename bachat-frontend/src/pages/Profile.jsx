@@ -180,7 +180,7 @@ export default function Profile() {
         {/* 2. STATS ROW */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Wallet Balance', value: investmentWallet, prefix: '₹', accent: 'text-mint' },
+            { label: 'Smart Investment Wallet', value: investmentWallet, prefix: '₹', accent: 'text-mint' },
             { label: 'Savings Goal', value: savingsGoal, prefix: '₹', accent: 'text-navy' },
             { label: 'Goal Progress', value: goalProgress, suffix: '%', accent: 'text-teal' },
             { label: 'Total Payments', value: totalTransactions, prefix: '', accent: 'text-navy' },

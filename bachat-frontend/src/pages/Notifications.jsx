@@ -24,7 +24,7 @@ const INITIAL_NOTIFICATIONS = [
   {
     id: 1,
     title: '₹7 invested automatically',
-    body: 'Your round-up from Starbucks payment of ₹163 was added to your Investment Wallet.',
+    body: 'Your round-up from Starbucks payment of ₹163 was added to your Smart Investment Wallet.',
     category: 'savings',
     time: '10 mins ago',
     unread: true,

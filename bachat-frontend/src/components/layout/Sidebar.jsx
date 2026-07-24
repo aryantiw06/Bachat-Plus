@@ -18,7 +18,7 @@ import LogoutDialog from './LogoutDialog.jsx';
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/payment', label: 'Payment', icon: QrCode },
-  { to: '/wallet', label: 'Wealth Wallet', icon: Wallet },
+  { to: '/wallet', label: 'Smart Investment Wallet', icon: Wallet },
   { to: '/investments', label: 'Investments', icon: TrendingUp },
   { to: '/ai-advisor', label: 'AI Advisor', icon: Sparkles },
   { to: '/analytics', label: 'Analytics', icon: BarChart3 },

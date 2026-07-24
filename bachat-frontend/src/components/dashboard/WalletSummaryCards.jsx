@@ -20,7 +20,7 @@ import AnimatedCounter from '../ui/AnimatedCounter.jsx';
 const CARD_CONFIG = [
   {
     key: 'wallet',
-    label: 'Investment Wallet',
+    label: 'Smart Investment Wallet',
     icon: Wallet,
     iconBg: 'bg-mint/10',
     iconColor: 'text-mint',

@@ -1,9 +1,9 @@
 // ============================================
-// Payment.jsx — Premium Dedicated Payment Page
+// Payment.jsx — Advanced Payment Checkout Page
 // ============================================
-// A full-page payment experience modeled after GPay/CRED.
-// Uses the global WalletContext to process payments and
-// immediately update Dashboard stats across the app.
+// Full checkout experience supporting multiple payment channels (UPI, NetBanking, Cards).
+// Executes through `processRoundUpPayment` in WalletContext.
+// Terminology: Unified to "Smart Investment Wallet".
 // ============================================
 
 import { useState } from 'react';
@@ -20,33 +20,47 @@ import {
   ShoppingBag,
   Zap,
   Car,
+  ShieldCheck,
+  Building2,
+  QrCode,
+  FileText,
+  Lock,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader.jsx';
 import Button from '../components/ui/Button.jsx';
 import Input from '../components/ui/Input.jsx';
+import RecentTransactions from '../components/dashboard/RecentTransactions.jsx';
 
-// Categories for the payment
 const CATEGORIES = [
-  { id: 'food', label: 'Food', icon: Coffee },
+  { id: 'food', label: 'Food & Dining', icon: Coffee },
   { id: 'shopping', label: 'Shopping', icon: ShoppingBag },
-  { id: 'transport', label: 'Transport', icon: Car },
-  { id: 'utility', label: 'Utility', icon: Zap },
+  { id: 'transport', label: 'Travel & Transport', icon: Car },
+  { id: 'utility', label: 'Utility & Bills', icon: Zap },
+];
+
+const PAYMENT_METHODS = [
+  { id: 'upi', label: 'UPI Instant', icon: QrCode, desc: 'Google Pay, PhonePe, BHIM' },
+  { id: 'card', label: 'Debit / Credit Card', icon: CreditCard, desc: 'Visa, Mastercard, RuPay' },
+  { id: 'netbanking', label: 'NetBanking', icon: Building2, desc: 'HDFC, ICICI, SBI, Axis' },
 ];
 
 const STATES = {
   IDLE: 'idle',
+  CONFIRMING: 'confirming',
   PROCESSING: 'processing',
   COMPLETE: 'complete',
 };
 
 export default function Payment() {
   const navigate = useNavigate();
-  const { processRoundUpPayment } = useWallet();
+  const { processRoundUpPayment, transactions } = useWallet();
 
   const [flowState, setFlowState] = useState(STATES.IDLE);
-  const [amount, setAmount] = useState('');
-  const [merchant, setMerchant] = useState('');
-  const [category, setCategory] = useState('food');
+  const [amount, setAmount] = useState('458');
+  const [merchant, setMerchant] = useState('Reliance Digital');
+  const [category, setCategory] = useState('shopping');
+  const [paymentMethod, setPaymentMethod] = useState('upi');
+  const [notes, setNotes] = useState('');
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
 
@@ -56,22 +70,24 @@ export default function Payment() {
   const roundupAmount = purchaseAmount > 0 ? roundedUp - purchaseAmount : 0;
 
   function validate() {
-    if (!merchant.trim()) return 'Please enter a merchant name.';
-    if (!amount || purchaseAmount <= 0) return 'Please enter a valid amount.';
-    if (purchaseAmount > 100000) return 'Maximum amount is ₹1,00,000.';
+    if (!merchant.trim()) return 'Please specify the payee / merchant name.';
+    if (!amount || purchaseAmount <= 0) return 'Please enter a valid payment amount.';
+    if (purchaseAmount > 100000) return 'Maximum transaction limit is ₹1,00,000.';
     return '';
   }
 
-  async function handlePay(e) {
+  function handleProceedToConfirm(e) {
     e.preventDefault();
-
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
+    const valErr = validate();
+    if (valErr) {
+      setError(valErr);
       return;
     }
-
     setError('');
+    setFlowState(STATES.CONFIRMING);
+  }
+
+  async function handleExecutePayment() {
     setFlowState(STATES.PROCESSING);
 
     try {
@@ -79,6 +95,8 @@ export default function Payment() {
         purchaseAmount,
         merchantName: merchant.trim(),
         category,
+        paymentMethod,
+        notes: notes.trim(),
       };
 
       const apiResult = await processRoundUpPayment(transactionPayload);
@@ -88,301 +106,343 @@ export default function Payment() {
         setResult({
           id: txn.id,
           merchantName: txn.merchant,
-          category: txn.category,
+          category: txn.category || category,
           purchaseAmount: txn.amount,
           roundedUp: (txn.amount || 0) + (txn.roundUp || 0),
           roundup: txn.roundUp,
-          merchantReceives: txn.amount,
           timestamp: new Date(txn.createdAt || Date.now()),
         });
         setFlowState(STATES.COMPLETE);
       } else {
-        setError(apiResult?.error || 'Payment failed on backend server');
+        setError(apiResult?.error || 'Payment execution rejected by backend service.');
         setFlowState(STATES.IDLE);
       }
     } catch (err) {
-      setError(err.message || 'Payment processing error');
+      setError(err.message || 'Error executing payment request.');
       setFlowState(STATES.IDLE);
     }
   }
 
   return (
-    <div className="max-w-3xl mx-auto pb-12">
+    <div className="max-w-5xl mx-auto pb-16 space-y-8">
       <PageHeader
-        title="Make a Payment"
-        subtitle="Pay anywhere. Invest the spare change automatically."
+        title="Advanced Payment Checkout"
+        subtitle="Pay merchants using UPI, Cards, or NetBanking. Spare change auto-invests directly into your Smart Investment Wallet."
       />
 
-      <AnimatePresence mode="wait">
-        {/* ===== IDLE STATE — Form ===== */}
-        {flowState === STATES.IDLE && (
-          <motion.div
-            key="idle"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="bg-bg shadow-sm border border-border rounded-2xl p-6 md:p-8"
-          >
-            <form onSubmit={handlePay} className="space-y-8">
-              {/* Merchant & Category Section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-navy mb-2">Merchant Name</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Store size={18} className="text-text-muted" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        {/* Main Payment Section (8 cols) */}
+        <div className="lg:col-span-7 space-y-6">
+          <AnimatePresence mode="wait">
+
+            {/* IDLE FORM */}
+            {flowState === STATES.IDLE && (
+              <motion.div
+                key="idle-form"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                className="bg-white rounded-3xl p-6 sm:p-8 border border-border/80 shadow-xl space-y-6"
+              >
+                <form onSubmit={handleProceedToConfirm} className="space-y-6">
+
+                  {/* Merchant & Amount */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-navy uppercase tracking-wider mb-1.5">
+                        Payee / Merchant Name
+                      </label>
+                      <div className="relative">
+                        <Store size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                        <input
+                          type="text"
+                          value={merchant}
+                          onChange={(e) => setMerchant(e.target.value)}
+                          placeholder="e.g. Starbucks, Amazon, Zomato"
+                          className="w-full pl-10 pr-4 py-3 bg-bg border border-border/80 rounded-xl font-bold text-navy text-sm focus:ring-2 focus:ring-mint focus:outline-none"
+                        />
+                      </div>
                     </div>
-                    <input
-                      type="text"
-                      className="w-full pl-10 pr-4 py-3 bg-white border border-border rounded-xl text-navy focus:outline-none focus:ring-2 focus:ring-mint focus:border-transparent transition-all"
-                      placeholder="e.g. Starbucks"
-                      value={merchant}
-                      onChange={(e) => setMerchant(e.target.value)}
-                    />
+
+                    <div>
+                      <label className="block text-xs font-bold text-navy uppercase tracking-wider mb-1.5">
+                        Payment Amount (₹)
+                      </label>
+                      <input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => {
+                          setAmount(e.target.value);
+                          if (error) setError('');
+                        }}
+                        placeholder="Enter amount"
+                        className="w-full px-4 py-3 bg-bg border border-border/80 rounded-xl font-extrabold text-2xl text-navy focus:ring-2 focus:ring-mint focus:outline-none"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-navy mb-2">Category</label>
-                  <div className="flex gap-2">
-                    {CATEGORIES.map((cat) => {
-                      const Icon = cat.icon;
-                      const isActive = category === cat.id;
-                      return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => setCategory(cat.id)}
-                          className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all ${
-                            isActive
-                              ? 'bg-navy text-white border-navy shadow-md scale-[1.02]'
-                              : 'bg-white text-text-muted border-border hover:bg-bg'
-                          }`}
-                        >
-                          <Icon size={18} className="mb-1" />
-                          <span className="text-[10px] font-semibold tracking-wide uppercase">
-                            {cat.label}
-                          </span>
-                        </button>
-                      );
-                    })}
+                  {/* Category Selection */}
+                  <div>
+                    <label className="block text-xs font-bold text-navy uppercase tracking-wider mb-2">
+                      Select Expense Category
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {CATEGORIES.map((cat) => {
+                        const Icon = cat.icon;
+                        const isSelected = category === cat.id;
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setCategory(cat.id)}
+                            className={`p-2.5 rounded-xl border text-center flex flex-col items-center justify-center transition-all ${
+                              isSelected
+                                ? 'bg-navy text-white border-navy shadow-md ring-2 ring-mint/40'
+                                : 'bg-bg text-text-muted border-border/80 hover:bg-white hover:text-navy'
+                            }`}
+                          >
+                            <Icon size={18} className="mb-1" />
+                            <span className="text-[11px] font-bold truncate">{cat.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Huge Amount Input Section (GPay style) */}
-              <div className="flex flex-col items-center justify-center pt-6 pb-2 border-y border-border/50">
-                <span className="text-sm font-semibold text-text-muted mb-4 uppercase tracking-widest">
-                  Enter Amount
-                </span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl md:text-5xl font-light text-text-muted">₹</span>
-                  <input
-                    type="number"
-                    value={amount}
-                    onChange={(e) => {
-                      setAmount(e.target.value);
-                      if (error) setError('');
-                    }}
-                    placeholder="0"
-                    className="w-[180px] md:w-[240px] text-5xl md:text-7xl font-display font-bold text-navy bg-transparent border-none p-0 focus:ring-0 text-center placeholder:text-text-muted/30"
-                    autoFocus
-                  />
-                </div>
-              </div>
+                  {/* Payment Method Selection */}
+                  <div>
+                    <label className="block text-xs font-bold text-navy uppercase tracking-wider mb-2">
+                      Select Payment Method
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      {PAYMENT_METHODS.map((pm) => {
+                        const Icon = pm.icon;
+                        const isSelected = paymentMethod === pm.id;
+                        return (
+                          <button
+                            key={pm.id}
+                            type="button"
+                            onClick={() => setPaymentMethod(pm.id)}
+                            className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all ${
+                              isSelected
+                                ? 'bg-navy/5 border-navy text-navy ring-2 ring-mint/30'
+                                : 'bg-bg/40 border-border/80 text-text-muted hover:border-navy/30'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <Icon size={18} className={isSelected ? 'text-navy' : 'text-text-muted'} />
+                              {isSelected && <CheckCircle2 size={16} className="text-emerald-600" />}
+                            </div>
+                            <div>
+                              <p className="text-xs font-extrabold text-navy">{pm.label}</p>
+                              <p className="text-[10px] text-text-muted">{pm.desc}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-              {/* Live Calculator Banner */}
-              <div className="min-h-[64px]">
-                {purchaseAmount > 0 ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="bg-gradient-to-r from-mint/10 to-teal/10 border border-mint/20 rounded-xl p-4 flex items-center justify-between"
+                  {/* Optional Notes */}
+                  <div>
+                    <label className="block text-xs font-bold text-navy uppercase tracking-wider mb-1.5">
+                      Description / Reference (Optional)
+                    </label>
+                    <div className="relative">
+                      <FileText size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                      <input
+                        type="text"
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="e.g. Monthly grocery bill"
+                        className="w-full pl-10 pr-4 py-2.5 bg-bg border border-border/80 rounded-xl font-medium text-navy text-xs focus:ring-2 focus:ring-mint focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Error Notification */}
+                  {error && (
+                    <p className="text-xs font-semibold text-rose-600 bg-rose-50 p-3 rounded-xl border border-rose-200">
+                      ⚠️ {error}
+                    </p>
+                  )}
+
+                  <Button
+                    type="submit"
+                    variant="accent"
+                    fullWidth
+                    className="py-3.5 text-base font-extrabold shadow-lg shadow-mint/20"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 bg-mint/20 rounded-full flex items-center justify-center">
-                        <PiggyBank size={20} className="text-mint" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-navy">Round-up Investment</p>
-                        <p className="text-xs text-navy/70">Automatic transfer to your wallet</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-black text-mint">+₹{roundupAmount}</p>
-                      <p className="text-[10px] font-bold uppercase text-navy/50">Total Bill: ₹{roundedUp}</p>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <div className="h-full flex items-center justify-center text-sm text-text-muted">
-                    Enter an amount to see your auto-investment.
-                  </div>
-                )}
-              </div>
-
-              {/* Error & Submit */}
-              <div className="pt-2">
-                {error && <p className="text-danger text-sm font-medium mb-4 text-center">{error}</p>}
-                
-                <Button
-                  type="submit"
-                  variant="accent"
-                  fullWidth
-                  className="py-4 text-lg shadow-xl shadow-mint/20"
-                >
-                  <CreditCard size={20} className="mr-2" />
-                  Proceed to Pay {purchaseAmount ? `₹${roundedUp}` : ''}
-                </Button>
-              </div>
-            </form>
-          </motion.div>
-        )}
-
-        {/* ===== PROCESSING STATE ===== */}
-        {flowState === STATES.PROCESSING && (
-          <motion.div
-            key="processing"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="flex flex-col items-center justify-center py-20"
-          >
-            <div className="relative mb-6">
-              <motion.div
-                animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.1, 0.3] }}
-                transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
-                className="absolute inset-0 rounded-full bg-mint"
-              />
-              <div className="relative h-24 w-24 rounded-full bg-navy flex items-center justify-center shadow-xl shadow-navy/20">
-                <Store size={32} className="text-white" />
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                  className="absolute inset-0 rounded-full border-4 border-transparent border-t-mint border-r-mint/50"
-                />
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold text-navy mb-2">Connecting to Merchant</h2>
-            <p className="text-text-muted">Securely processing your payment to {merchant}</p>
-          </motion.div>
-        )}
-
-        {/* ===== COMPLETE STATE ===== */}
-        {flowState === STATES.COMPLETE && result && (
-          <motion.div
-            key="complete"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="max-w-md mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-border"
-          >
-            {/* Top Green Success Section */}
-            <div className="bg-success/10 pt-10 pb-8 px-6 flex flex-col items-center text-center relative overflow-hidden">
-              {/* Confetti / Sparkle background effects could go here */}
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
-                className="h-20 w-20 bg-success rounded-full flex items-center justify-center text-white shadow-xl shadow-success/30 mb-6 relative z-10"
-              >
-                <CheckCircle2 size={40} />
+                    Review & Pay ₹{roundedUp.toLocaleString('en-IN')}
+                    <ArrowRight size={18} className="ml-2" />
+                  </Button>
+                </form>
               </motion.div>
-              
-              <motion.h2 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-2xl font-bold text-navy mb-1 relative z-10"
-              >
-                Payment Successful
-              </motion.h2>
-              <motion.p 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="text-text-muted relative z-10"
-              >
-                Paid to <span className="font-semibold text-navy">{result.merchantName}</span>
-              </motion.p>
-            </div>
+            )}
 
-            {/* Receipt Details */}
-            <div className="p-6 md:p-8 space-y-6 bg-bg/30">
-              
-              <div className="flex justify-between items-center border-b border-border/60 pb-6">
-                <span className="text-text-muted font-medium">Total Deducted</span>
-                <span className="text-2xl font-bold text-navy">₹{result.roundedUp}</span>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-muted">Merchant Received</span>
-                  <span className="font-semibold text-navy">₹{result.merchantReceives}</span>
-                </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-muted">Category</span>
-                  <span className="font-semibold text-navy capitalize">{result.category}</span>
-                </div>
-              </div>
-
-              {/* The Auto-Investment Highlight */}
+            {/* CONFIRMATION DRAWER STATE */}
+            {flowState === STATES.CONFIRMING && (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8, type: 'spring' }}
-                className="mt-6 bg-gradient-to-r from-navy to-navy-light rounded-2xl p-5 text-white flex items-center justify-between shadow-lg relative overflow-hidden"
+                key="confirm"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                className="bg-navy text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/20 space-y-6"
               >
-                {/* Shine effect */}
-                <motion.div 
-                  className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
-                  initial={{ x: '-200%' }}
-                  animate={{ x: '300%' }}
-                  transition={{ delay: 1.5, duration: 1 }}
-                />
-
-                <div className="flex items-center gap-4 relative z-10">
-                  <div className="h-12 w-12 bg-mint/20 rounded-xl flex items-center justify-center border border-mint/30">
-                    <PiggyBank size={24} className="text-mint" />
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/15">
+                    <ShieldCheck size={20} className="text-mint" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-mint uppercase tracking-wider mb-0.5">Invested</p>
-                    <p className="text-sm font-medium text-white/80">Added to your wealth</p>
+                    <h3 className="font-extrabold text-lg text-white">Confirm Checkout</h3>
+                    <p className="text-xs text-white/70">Verify details before authorization</p>
                   </div>
                 </div>
-                <div className="text-2xl font-black text-mint relative z-10">
-                  +₹{result.roundup}
+
+                <div className="bg-white/10 rounded-2xl p-5 border border-white/15 space-y-3 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-white/70">Payee</span>
+                    <span className="font-bold text-white">{merchant}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/70">Payment Channel</span>
+                    <span className="font-bold text-white uppercase">{paymentMethod}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white/70">Base Bill</span>
+                    <span className="font-semibold text-white">₹{purchaseAmount}</span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-white/15">
+                    <span className="font-bold text-mint">Smart Investment Wallet</span>
+                    <span className="font-extrabold text-mint">+₹{roundupAmount}</span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-white/20 text-sm font-extrabold text-white">
+                    <span>Total Deducted</span>
+                    <span>₹{roundedUp}</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button variant="ghost" className="flex-1 text-white border border-white/20 hover:bg-white/10" onClick={() => setFlowState(STATES.IDLE)}>
+                    Back to Edit
+                  </Button>
+                  <Button variant="accent" className="flex-1 font-extrabold" onClick={handleExecutePayment}>
+                    <Lock size={16} className="mr-1.5" /> Authorize Pay
+                  </Button>
                 </div>
               </motion.div>
+            )}
 
+            {/* PROCESSING STATE */}
+            {flowState === STATES.PROCESSING && (
+              <motion.div
+                key="processing"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="bg-white rounded-3xl p-12 text-center border border-border shadow-xl space-y-4"
+              >
+                <div className="relative inline-block">
+                  <motion.div
+                    animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
+                    transition={{ repeat: Infinity, duration: 1.2 }}
+                    className="absolute inset-0 rounded-full bg-mint"
+                  />
+                  <div className="relative h-20 w-20 rounded-full bg-navy text-white flex items-center justify-center shadow-lg">
+                    <CreditCard size={32} className="text-mint" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-extrabold text-navy">Processing Advanced Checkout…</h3>
+                <p className="text-xs text-text-muted">Connecting securely to bank gateway</p>
+              </motion.div>
+            )}
+
+            {/* COMPLETE STATE */}
+            {flowState === STATES.COMPLETE && result && (
+              <motion.div
+                key="complete"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-3xl p-6 sm:p-8 border border-border shadow-xl text-center space-y-6"
+              >
+                <div className="h-16 w-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-md">
+                  <CheckCircle2 size={36} />
+                </div>
+
+                <div>
+                  <h3 className="text-2xl font-extrabold text-navy">Payment Authorized</h3>
+                  <p className="text-xs text-text-muted mt-1">Transaction ID: {result.id}</p>
+                </div>
+
+                <div className="bg-bg rounded-2xl p-5 border border-border/80 text-xs text-left space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">Merchant</span>
+                    <span className="font-bold text-navy">{result.merchantName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">Base Amount</span>
+                    <span className="font-semibold text-navy">₹{result.purchaseAmount}</span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-border">
+                    <span className="font-extrabold text-emerald-700 flex items-center gap-1.5">
+                      <PiggyBank size={16} /> Smart Investment Wallet
+                    </span>
+                    <span className="font-extrabold text-emerald-700">+₹{result.roundup} Auto-Invested</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button variant="secondary" className="flex-1 text-xs font-bold" onClick={() => setFlowState(STATES.IDLE)}>
+                    Make Another Payment
+                  </Button>
+                  <Button variant="accent" className="flex-1 text-xs font-bold" onClick={() => navigate('/dashboard')}>
+                    Go to Dashboard <ArrowRight size={14} className="ml-1" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+          </AnimatePresence>
+        </div>
+
+        {/* Right Section — Live Summary & Recent Activity (4 cols) */}
+        <div className="lg:col-span-5 space-y-6">
+
+          {/* Live Summary Card */}
+          <div className="bg-gradient-to-br from-navy via-navy to-navy-light rounded-3xl p-6 text-white shadow-xl border border-navy/10 space-y-4">
+            <div className="flex items-center justify-between border-b border-white/15 pb-3">
+              <span className="text-xs font-extrabold uppercase tracking-widest text-white/70">Payment Summary</span>
+              <ShieldCheck size={18} className="text-mint" />
             </div>
 
-            {/* Actions */}
-            <div className="p-6 bg-white border-t border-border flex gap-4">
-              <Button 
-                variant="secondary" 
-                className="flex-1"
-                onClick={() => {
-                  setAmount('');
-                  setMerchant('');
-                  setResult(null);
-                  setFlowState(STATES.IDLE);
-                }}
-              >
-                Pay Again
-              </Button>
-              <Button 
-                variant="primary" 
-                className="flex-1"
-                onClick={() => navigate('/dashboard')}
-              >
-                Dashboard
-                <ArrowRight size={16} className="ml-2" />
-              </Button>
+            <div className="space-y-3 text-xs">
+              <div className="flex justify-between">
+                <span className="text-white/70">Purchase Amount</span>
+                <span className="font-bold text-white">₹{purchaseAmount}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/70">Smart Investment Wallet</span>
+                <span className="font-extrabold text-mint">+₹{roundupAmount}</span>
+              </div>
+              <div className="flex justify-between pt-3 border-t border-white/15 text-sm font-extrabold text-white">
+                <span>Total Deduction</span>
+                <span>₹{roundedUp}</span>
+              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+            <div className="bg-white/10 rounded-xl p-3 border border-white/15 text-[11px] text-white/80 flex items-center gap-2">
+              <PiggyBank size={16} className="text-mint shrink-0" />
+              <span>Round-up is automatically invested into low-risk Gold & Nifty index funds.</span>
+            </div>
+          </div>
+
+          {/* Recent Payments Preview */}
+          <RecentTransactions transactions={transactions} />
+
+        </div>
+
+      </div>
     </div>
   );
 }

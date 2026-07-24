@@ -157,7 +157,7 @@ export default function Investments() {
     }
     return {
       product: PRODUCTS[3],
-      reason: 'With ₹' + investmentWallet.toLocaleString('en-IN') + ' in your Investment Wallet, diversifying into Bluechip Equity maximizes long-term compounding.',
+      reason: 'With ₹' + investmentWallet.toLocaleString('en-IN') + ' in your Smart Investment Wallet, diversifying into Bluechip Equity maximizes long-term compounding.',
       confidence: '89%',
       expectedReturn: '16.5%',
       risk: 'High Growth',
@@ -179,7 +179,7 @@ export default function Investments() {
     setIsAddingMoney(false);
 
     if (res.success) {
-      setFeedback({ type: 'success', message: `₹${num.toLocaleString('en-IN')} added to your Investment Wallet successfully!` });
+      setFeedback({ type: 'success', message: `₹${num.toLocaleString('en-IN')} added to your Smart Investment Wallet successfully!` });
       setIsAddMoneyOpen(false);
       setAddAmount('1000');
     } else {
@@ -199,7 +199,7 @@ export default function Investments() {
     }
 
     if (num > investmentWallet) {
-      setFeedback({ type: 'error', message: `Insufficient Investment Wallet balance. Please add money first.` });
+      setFeedback({ type: 'error', message: `Insufficient Smart Investment Wallet balance. Please add money first.` });
       return;
     }
 
@@ -272,7 +272,7 @@ export default function Investments() {
                       </div>
                       <div>
                         <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-800">
-                          Investment Wallet
+                          Smart Investment Wallet
                         </span>
                         <p className="text-xs text-text-muted">Available to Invest</p>
                       </div>
@@ -677,7 +677,7 @@ export default function Investments() {
                 </div>
                 <div>
                   <h3 className="text-xl font-extrabold text-navy">Add Money</h3>
-                  <p className="text-xs text-text-muted">Simulated top-up to Investment Wallet</p>
+                  <p className="text-xs text-text-muted">Simulated top-up to Smart Investment Wallet</p>
                 </div>
               </div>
 

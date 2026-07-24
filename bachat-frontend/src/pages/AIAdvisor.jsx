@@ -97,7 +97,7 @@ function generateHeroSummary(wallet, goalName, savingsGoal, todayRoundup, monthl
   if (todayRoundup > 0) return `You invested ₹${todayRoundup} today. Every rupee counts! 💪`;
   if (remaining > 0 && remaining < 500) return `You're only ₹${remaining} away from your ${goalName}! 🎯`;
   if (monthlyTotal > 0) return `₹${monthlyTotal} saved this month through automatic round-ups. 📈`;
-  return `Your wealth wallet is at ₹${wallet}. Keep building! 🌱`;
+  return `Your Smart Investment Wallet is at ₹${wallet}. Keep building! 🌱`;
 }
 
 function generateTodayInsight(wallet, avgRoundup, totalTx, categoryBreakdown, largestRoundup) {

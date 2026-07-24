@@ -21,7 +21,7 @@ const INITIAL_NOTIFICATIONS = [
   {
     id: 1,
     title: '₹7 invested today!',
-    body: 'Your coffee payment round-up was automatically transferred to your Investment Wallet.',
+    body: 'Your coffee payment round-up was automatically transferred to your Smart Investment Wallet.',
     category: 'investment',
     time: '10m ago',
     unread: true,

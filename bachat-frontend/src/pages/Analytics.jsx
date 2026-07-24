@@ -294,7 +294,7 @@ export default function Analytics() {
             <div className="relative p-6 md:p-8">
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-5">
                 {[
-                  { label: 'Total Saved', value: investmentWallet, prefix: '₹', accent: 'text-mint' },
+                  { label: 'Smart Wallet Saved', value: investmentWallet, prefix: '₹', accent: 'text-mint' },
                   { label: 'Total Payments', value: totalTransactions, prefix: '', accent: 'text-navy' },
                   { label: 'Total Spent', value: totalSpent, prefix: '₹', accent: 'text-navy' },
                   { label: 'Savings Goal', value: savingsGoal, prefix: '₹', accent: 'text-teal' },
