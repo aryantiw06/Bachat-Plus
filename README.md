@@ -26,12 +26,12 @@
 
 <div align="center">
 
-![Landing Page](<img width="1348" height="744" alt="Screenshot 2026-07-25 at 6 10 27 PM" src="https://github.com/user-attachments/assets/3678f3c9-45c2-46d6-ad6c-33a41e87ab97" />
-)
+<img width="1348" height="744" alt="Screenshot 2026-07-25 at 6 10 27 PM" src="https://github.com/user-attachments/assets/3678f3c9-45c2-46d6-ad6c-33a41e87ab97" />
+
 *Landing page hero — round-up wealth platform pitch*
 
-![Dashboard](<img width="1348" height="744" alt="Screenshot 2026-07-25 at 6 14 45 PM" src="https://github.com/user-attachments/assets/b5a51e87-cbe1-4d0c-b215-4b73990f8f27" />
-)
+<img width="1348" height="744" alt="Screenshot 2026-07-25 at 6 14 45 PM" src="https://github.com/user-attachments/assets/b5a51e87-cbe1-4d0c-b215-4b73990f8f27" />
+
 *User dashboard with Smart Investment Wallet overview*
 
 </div>
