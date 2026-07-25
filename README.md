@@ -535,6 +535,10 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 **Aryan Raj Tiwary**
 GitHub: [@aryantiw06](https://github.com/aryantiw06)
+
+**Sruti Pandey**
+GitHub: [@srus05](https://github.com/srus05)
+
 Live Project: [baachat-plus.vercel.app](https://baachat-plus.vercel.app)
 
 ---
