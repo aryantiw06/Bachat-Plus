@@ -13,6 +13,7 @@ import {
 
 import * as walletService from './wallet.service.js';
 import * as analyticsService from './analytics.service.js';
+import traceSpan from '../utils/tracer.js';
 
 const COLLECTION = 'transactions';
 const DEFAULT_PAGE = 1;
@@ -70,39 +71,42 @@ export function buildTransaction({ uid, amount, roundUp, merchant, category }) {
  * Create a payment transaction and update wallet + analytics.
  */
 export async function createPayment(uid, { amount, merchant, category }) {
-  validatePaymentInput({ amount, merchant });
+  return traceSpan('payment.process', { uid, amount, merchant, category }, async () => {
+    validatePaymentInput({ amount, merchant });
 
-  await walletService.requireWallet(uid);
+    await walletService.requireWallet(uid);
 
-  const roundUp = calculateRoundUp(amount);
-  const transaction = buildTransaction({ uid, amount, roundUp, merchant, category });
+    const roundUp = await traceSpan('payment.calculate_roundup', { amount }, async () => calculateRoundUp(amount));
+    const transaction = buildTransaction({ uid, amount, roundUp, merchant, category });
 
-  try {
-    const batch = db.batch();
+    try {
+      const batch = db.batch();
 
       batch.set(db.collection(COLLECTION).doc(transaction.id), transaction);
 
-      const wallet = await walletService.getWallet(uid);
+      const wallet = await traceSpan('firestore.read', { collection: 'wallets', docId: uid }, () => walletService.getWallet(uid));
       const walletBalance = (wallet.walletBalance ?? 0) + roundUp;
       const totalRoundups = (wallet.totalRoundups ?? 0) + roundUp;
       const totalTransactions = (wallet.totalTransactions ?? 0) + 1;
       const now = transaction.createdAt;
 
-      batch.set(
-        db.collection('wallets').doc(uid),
-        {
-          walletBalance,
-          totalRoundups,
-          totalTransactions,
-          lastTransactionAt: now,
-          investmentWallet: walletBalance,
-          lifetimeSavings: totalRoundups,
-          updatedAt: now,
-        },
-        { merge: true }
-      );
+      await traceSpan('wallet.update', { uid, roundUp, walletBalance }, async () => {
+        batch.set(
+          db.collection('wallets').doc(uid),
+          {
+            walletBalance,
+            totalRoundups,
+            totalTransactions,
+            lastTransactionAt: now,
+            investmentWallet: walletBalance,
+            lifetimeSavings: totalRoundups,
+            updatedAt: now,
+          },
+          { merge: true }
+        );
+      });
 
-      const analytics = (await analyticsService.getAnalytics(uid)) || analyticsService.buildDefaultAnalytics(uid);
+      const analytics = (await traceSpan('firestore.read', { collection: 'analytics', docId: uid }, () => analyticsService.getAnalytics(uid))) || analyticsService.buildDefaultAnalytics(uid);
       const totalSpent = (analytics.totalSpent ?? 0) + amount;
       const totalSaved = (analytics.totalSaved ?? 0) + roundUp;
       const transactionCount = (analytics.transactionCount ?? 0) + 1;
@@ -123,42 +127,43 @@ export async function createPayment(uid, { amount, merchant, category }) {
         { merge: true }
       );
 
-    await batch.commit();
+      await traceSpan('firestore.write', { type: 'batch_commit', uid }, () => batch.commit());
 
-    logger.info('Payment created.', {
-      event: 'payment.created',
-      uid,
-      transactionId: transaction.id,
-      amount,
-      roundUp,
-      merchant: transaction.merchant,
-    });
+      logger.info('Payment created.', {
+        event: 'payment.created',
+        uid,
+        transactionId: transaction.id,
+        amount,
+        roundUp,
+        merchant: transaction.merchant,
+      });
 
-    logger.info('Transaction saved.', {
-      event: 'transaction.saved',
-      uid,
-      transactionId: transaction.id,
-    });
+      logger.info('Transaction saved.', {
+        event: 'transaction.saved',
+        uid,
+        transactionId: transaction.id,
+      });
 
-    const walletSummary = await walletService.getWalletSummary(uid);
+      const walletSummary = await walletService.getWalletSummary(uid);
 
-    return {
-      success: true,
-      transaction,
-      wallet: walletSummary,
-    };
-  } catch (error) {
-    if (error instanceof BadRequestError || error instanceof NotFoundError) {
-      throw error;
+      return {
+        success: true,
+        transaction,
+        wallet: walletSummary,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestError || error instanceof NotFoundError) {
+        throw error;
+      }
+
+      logger.error('Payment creation failed.', {
+        event: 'payment.failed',
+        uid,
+        error: error.message,
+      });
+      throw new FirestoreUnavailableError();
     }
-
-    logger.error('Payment creation failed.', {
-      event: 'payment.failed',
-      uid,
-      error: error.message,
-    });
-    throw new FirestoreUnavailableError();
-  }
+  });
 }
 
 /**
@@ -182,10 +187,9 @@ export async function getPaymentHistory(uid, query = {}) {
   const offset = (page - 1) * limit;
 
   try {
-    const snapshot = await db
-      .collection(COLLECTION)
-      .where('userId', '==', uid)
-      .get();
+    const snapshot = await traceSpan('firestore.read', { collection: COLLECTION, query: 'userId == uid', uid }, () =>
+      db.collection(COLLECTION).where('userId', '==', uid).get()
+    );
 
     const allTransactions = snapshot.docs
       .map((doc) => doc.data())
@@ -221,7 +225,9 @@ export async function getPaymentHistory(uid, query = {}) {
  */
 export async function getPaymentById(uid, transactionId) {
   try {
-    const doc = await db.collection(COLLECTION).doc(transactionId).get();
+    const doc = await traceSpan('firestore.read', { collection: COLLECTION, docId: transactionId, uid }, () =>
+      db.collection(COLLECTION).doc(transactionId).get()
+    );
 
     if (!doc.exists) {
       throw new NotFoundError('Transaction not found');

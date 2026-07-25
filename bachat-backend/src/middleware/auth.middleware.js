@@ -1,5 +1,6 @@
 import { auth } from '../config/firebase.js';
 import logger from '../config/logger.js';
+import traceSpan from '../utils/tracer.js';
 
 const bearerToken = (header) => {
   if (typeof header !== 'string') return null;
@@ -23,7 +24,9 @@ export const protect = async (req, res, next) => {
   }
 
   try {
-    const decodedToken = await auth.verifyIdToken(token);
+    const decodedToken = await traceSpan('auth.firebase_verify', { path: req.originalUrl }, () =>
+      auth.verifyIdToken(token)
+    );
     req.user = { uid: decodedToken.uid, email: decodedToken.email ?? null, name: decodedToken.name ?? decodedToken.displayName ?? null };
     return next();
   } catch (error) {

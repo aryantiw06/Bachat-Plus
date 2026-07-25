@@ -6,6 +6,7 @@ import { db } from '../config/firebase.js';
 import logger from '../config/logger.js';
 import { BadRequestError, FirestoreUnavailableError, NotFoundError } from '../utils/errors.js';
 import * as walletService from './wallet.service.js';
+import traceSpan from '../utils/tracer.js';
 
 const INVESTMENTS_COLLECTION = 'investments';
 const PORTFOLIO_COLLECTION = 'portfolio';
@@ -211,102 +212,108 @@ export async function addMoney(uid, amount) {
  * Execute Investment Order (deducts from Investment Wallet, adds to Portfolio)
  */
 export async function createInvestment(uid, { productId, investmentType, amount }) {
-  const targetProductId = productId || investmentType;
-  const product = PRODUCTS.find((p) => p.id === targetProductId);
+  return traceSpan('investment.execute', { uid, productId: productId || investmentType, amount }, async () => {
+    const targetProductId = productId || investmentType;
+    const product = PRODUCTS.find((p) => p.id === targetProductId);
 
-  if (!product) {
-    throw new BadRequestError(`Unsupported investment product: ${targetProductId}`);
-  }
-
-  const numericAmount = typeof amount === 'number' ? amount : parseFloat(amount);
-
-  if (!numericAmount || Number.isNaN(numericAmount) || numericAmount < product.minInvestment) {
-    throw new BadRequestError(`Minimum investment for ${product.name} is ₹${product.minInvestment}`);
-  }
-
-  const now = new Date().toISOString();
-  const investmentId = uuidv4();
-
-  // Initial simulated values
-  const { currentValue, profit } = calculateSimulatedPerformance(numericAmount, product, now);
-
-  const investmentRecord = {
-    id: investmentId,
-    userId: uid,
-    productId: product.id,
-    productName: product.name,
-    category: product.category,
-    amount: numericAmount,
-    purchasePrice: 100,
-    currentPrice: 102.8,
-    currentValue,
-    profit,
-    status: 'active',
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  try {
-    let wallet = await walletService.getWallet(uid);
-    if (!wallet) {
-      wallet = await walletService.createWallet(uid);
+    if (!product) {
+      throw new BadRequestError(`Unsupported investment product: ${targetProductId}`);
     }
 
-    const currentBalance = wallet.walletBalance ?? wallet.investmentWallet ?? 0;
-    if (currentBalance < numericAmount) {
-      throw new BadRequestError(`Insufficient Investment Wallet balance. You have ₹${currentBalance}, but ₹${numericAmount} is required.`);
+    const numericAmount = typeof amount === 'number' ? amount : parseFloat(amount);
+
+    if (!numericAmount || Number.isNaN(numericAmount) || numericAmount < product.minInvestment) {
+      throw new BadRequestError(`Minimum investment for ${product.name} is ₹${product.minInvestment}`);
     }
 
-    const newBalance = currentBalance - numericAmount;
+    const now = new Date().toISOString();
+    const investmentId = uuidv4();
 
-    // Atomically save investment & update wallet balance
-    if (typeof db.batch === 'function') {
-      const batch = db.batch();
+    // Initial simulated values
+    const { currentValue, profit } = calculateSimulatedPerformance(numericAmount, product, now);
 
-      batch.set(db.collection(INVESTMENTS_COLLECTION).doc(investmentId), investmentRecord);
-      batch.set(
-        db.collection(WALLETS_COLLECTION).doc(uid),
-        {
-          walletBalance: newBalance,
-          investmentWallet: newBalance,
-          updatedAt: now,
-        },
-        { merge: true }
-      );
-
-      await batch.commit();
-    } else {
-      await db.collection(INVESTMENTS_COLLECTION).doc(investmentId).set(investmentRecord);
-      await db.collection(WALLETS_COLLECTION).doc(uid).set(
-        {
-          walletBalance: newBalance,
-          investmentWallet: newBalance,
-          updatedAt: now,
-        },
-        { merge: true }
-      );
-    }
-
-    logger.info('Investment successfully executed.', { uid, productId: product.id, amount: numericAmount });
-
-    const portfolio = await getPortfolio(uid);
-
-    return {
-      success: true,
-      investment: investmentRecord,
-      wallet: {
-        investmentWallet: newBalance,
-        walletBalance: newBalance,
-        manualDeposits: wallet.manualDeposits ?? 0,
-        totalRoundups: wallet.totalRoundups ?? wallet.lifetimeSavings ?? 0,
-      },
-      portfolio,
+    const investmentRecord = {
+      id: investmentId,
+      userId: uid,
+      productId: product.id,
+      productName: product.name,
+      category: product.category,
+      amount: numericAmount,
+      purchasePrice: 100,
+      currentPrice: 102.8,
+      currentValue,
+      profit,
+      status: 'active',
+      createdAt: now,
+      updatedAt: now,
     };
-  } catch (error) {
-    if (error instanceof BadRequestError) throw error;
-    logger.error('Investment execution failed:', error);
-    throw new FirestoreUnavailableError('Unable to process investment at this time');
-  }
+
+    try {
+      let wallet = await traceSpan('firestore.read', { collection: WALLETS_COLLECTION, docId: uid }, () => walletService.getWallet(uid));
+      if (!wallet) {
+        wallet = await walletService.createWallet(uid);
+      }
+
+      const currentBalance = wallet.walletBalance ?? wallet.investmentWallet ?? 0;
+      if (currentBalance < numericAmount) {
+        throw new BadRequestError(`Insufficient Investment Wallet balance. You have ₹${currentBalance}, but ₹${numericAmount} is required.`);
+      }
+
+      const newBalance = currentBalance - numericAmount;
+
+      // Atomically save investment & update wallet balance
+      if (typeof db.batch === 'function') {
+        const batch = db.batch();
+
+        batch.set(db.collection(INVESTMENTS_COLLECTION).doc(investmentId), investmentRecord);
+        batch.set(
+          db.collection(WALLETS_COLLECTION).doc(uid),
+          {
+            walletBalance: newBalance,
+            investmentWallet: newBalance,
+            updatedAt: now,
+          },
+          { merge: true }
+        );
+
+        await traceSpan('firestore.write', { type: 'batch_commit', uid, investmentId }, () => batch.commit());
+      } else {
+        await traceSpan('firestore.write', { collection: INVESTMENTS_COLLECTION, docId: investmentId }, () =>
+          db.collection(INVESTMENTS_COLLECTION).doc(investmentId).set(investmentRecord)
+        );
+        await traceSpan('firestore.write', { collection: WALLETS_COLLECTION, docId: uid }, () =>
+          db.collection(WALLETS_COLLECTION).doc(uid).set(
+            {
+              walletBalance: newBalance,
+              investmentWallet: newBalance,
+              updatedAt: now,
+            },
+            { merge: true }
+          )
+        );
+      }
+
+      logger.info('Investment successfully executed.', { uid, productId: product.id, amount: numericAmount });
+
+      const portfolio = await getPortfolio(uid);
+
+      return {
+        success: true,
+        investment: investmentRecord,
+        wallet: {
+          investmentWallet: newBalance,
+          walletBalance: newBalance,
+          manualDeposits: wallet.manualDeposits ?? 0,
+          totalRoundups: wallet.totalRoundups ?? wallet.lifetimeSavings ?? 0,
+        },
+        portfolio,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestError) throw error;
+      logger.error('Investment execution failed:', error);
+      throw new FirestoreUnavailableError('Unable to process investment at this time');
+    }
+  });
 }
 
 /**
