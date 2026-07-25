@@ -527,7 +527,7 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 - [OpenTelemetry](https://opentelemetry.io) — vendor-neutral instrumentation standard
 - [Firebase](https://firebase.google.com) — authentication and Firestore infrastructure
 - [Framer Motion](https://www.framer.com/motion/) — animation library
-- 
+  
 
 ---
 
