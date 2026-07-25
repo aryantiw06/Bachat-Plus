@@ -31,13 +31,32 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-bg);
+  background:
+    radial-gradient(circle at 100% -10%, rgba(2, 195, 154, 0.11), transparent 25rem),
+    radial-gradient(circle at -10% 25%, rgba(10, 46, 92, 0.055), transparent 28rem),
+    var(--color-bg);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
+  min-width: 320px;
 }
 
 h1, h2, h3, h4 {
   font-family: var(--font-display);
+  letter-spacing: -0.025em;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-mint) 28%, white);
+  color: var(--color-navy-dark);
+}
+
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-mint) 72%, white);
+  outline-offset: 3px;
+}
+
+button, a, input, select, textarea {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Scrollbar polish — small but noticeable premium touch */

@@ -79,7 +79,7 @@ export default function WalletSummaryCards({ stats }) {
     >
       {CARD_CONFIG.map(({ key, label, icon: Icon, iconBg, iconColor, prefix, valueKey }) => (
         <motion.div key={key} variants={cardVariants}>
-          <Card hoverable className="flex flex-col gap-3">
+          <Card hoverable className={`flex flex-col gap-3 ${key === 'wallet' ? 'bg-gradient-to-br from-mint/10 via-white to-white border-mint/20' : ''}`}>
             {/* Icon badge */}
             <div className={`h-10 w-10 rounded-xl ${iconBg} flex items-center justify-center`}>
               <Icon size={20} className={iconColor} />

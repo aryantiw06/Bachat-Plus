@@ -39,12 +39,12 @@ export default function Sidebar() {
     transition-all duration-150 group
     ${isActive
       ? 'bg-navy text-white shadow-md shadow-navy/20'
-      : 'text-text-muted hover:bg-navy/5 hover:text-navy'}
+      : 'text-text-muted hover:bg-navy/5 hover:text-navy hover:translate-x-0.5'}
   `;
 
   return (
     <>
-      <aside className="hidden md:flex md:flex-col w-64 shrink-0 h-screen sticky top-0 border-r border-border bg-surface px-4 py-6 z-20">
+      <aside className="hidden md:flex md:flex-col w-64 shrink-0 h-screen sticky top-0 border-r border-border/80 bg-surface/90 backdrop-blur-xl px-4 py-6 z-20">
         {/* Brand Logo */}
         <div className="flex items-center gap-2.5 px-2 mb-8">
           <span className="h-9 w-9 rounded-xl bg-navy flex items-center justify-center shadow-sm">

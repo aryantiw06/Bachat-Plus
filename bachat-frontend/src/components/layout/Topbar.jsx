@@ -3,7 +3,7 @@
 // ============================================
 
 import { useNavigate } from 'react-router-dom';
-import { Crown } from 'lucide-react';
+import { Crown, Wallet } from 'lucide-react';
 import { usePremium } from '../../contexts/PremiumContext.jsx';
 import NotificationDropdown from './NotificationDropdown.jsx';
 import UserMenu from './UserMenu.jsx';
@@ -13,7 +13,13 @@ export default function Topbar() {
   const navigate = useNavigate();
 
   return (
-    <header className="h-16 flex items-center justify-end gap-3 px-6 md:px-10 border-b border-border bg-surface sticky top-0 z-30">
+    <header className="h-16 flex items-center justify-between gap-3 px-4 sm:px-6 md:px-10 border-b border-border/80 bg-surface/85 backdrop-blur-xl sticky top-0 z-30">
+      <div className="flex items-center gap-2 md:hidden">
+        <span className="h-8 w-8 rounded-xl bg-navy flex items-center justify-center shadow-sm"><Wallet size={16} className="text-mint" /></span>
+        <span className="font-display font-extrabold text-navy">Bachat<span className="text-mint">+</span></span>
+      </div>
+
+      <div className="ml-auto flex items-center gap-3">
       {/* Premium Pill Badge (Clickable) */}
       {isPremium ? (
         <button
@@ -38,6 +44,7 @@ export default function Topbar() {
 
       {/* User Avatar Dropdown */}
       <UserMenu />
+      </div>
     </header>
   );
 }

@@ -1,148 +1,136 @@
-import { useNavigate } from 'react-router-dom';
-import {
-  ArrowRight,
-  Zap,
-  Repeat,
-  Sparkles,
-  PieChart,
-  ShieldCheck,
-  Target,
-  BarChart3,
-  Wallet,
-  Crown,
-  TrendingUp,
-} from 'lucide-react';
+// ============================================
+// Landing.jsx — Premium Product-Focused Landing Page
+// ============================================
+// Marketing experience featuring:
+//   1. Hero Section with 3D Smartphone & Tumbling Gold Coins Scene
+//   2. Interactive 5-step Round-Up Story Simulator (₹247 → ₹250 → ₹3 → ₹3,000 Portfolio)
+//   3. How It Works Section (4-step auto round-up engine)
+//   4. Why Bachat+ Pillars
+//   5. Interactive Wealth Journey Timeline (Section 1)
+//   6. Live Round-Up Calculator & Wealth Potential Simulator (Section 2)
+// ============================================
 
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, Sparkles, ShieldCheck, Lock, CheckCircle2 } from 'lucide-react';
 import Button from '../components/ui/Button.jsx';
 import Badge from '../components/ui/Badge.jsx';
-import StatBlock from '../components/ui/StatBlock.jsx';
-import StepCard from '../components/ui/StepCard.jsx';
-import FeatureCard from '../components/ui/FeatureCard.jsx';
-import RoundUpPreviewCard from '../components/landing/RoundUpPreviewCard.jsx';
+import Hero3DScene from '../components/landing_3d/Hero3DScene.jsx';
+import RoundUpStorySimulator from '../components/landing_3d/RoundUpStorySimulator.jsx';
+import HowItWorksSection from '../components/landing_3d/HowItWorksSection.jsx';
+import WhyBachatSection from '../components/landing_3d/WhyBachatSection.jsx';
+import WealthJourneySection from '../components/landing_3d/WealthJourneySection.jsx';
+import LiveCalculatorSection from '../components/landing_3d/LiveCalculatorSection.jsx';
 
-// ---- Dummy content used only for this UI-only module ----
-const STATS = [
-  { value: '300M+', label: 'UPI users in India' },
-  { value: '₹1L Cr+', label: 'Untapped micro-savings' },
-  { value: '0', label: 'Effort required from you' },
-];
-
-const STEPS = [
-  { icon: Zap, title: 'Pay as usual', description: 'Any UPI payment, anywhere — no new habit to build.' },
-  { icon: Repeat, title: 'Auto round-up', description: 'The spare change is instantly set aside for you.' },
-  { icon: Sparkles, title: 'AI recommends', description: 'Get a personalized investment suggestion, instantly.' },
-  { icon: PieChart, title: 'Wealth grows', description: 'Funds flow into ETFs, mutual funds, gold & more.' },
-];
-
-const FEATURES = [
-  { icon: Wallet, title: 'Smart Investment Wallet', description: 'Every round-up lands in one place, growing quietly in the background.' },
-  { icon: Sparkles, title: 'AI Investment Advisor', description: 'Personalized fund & stock suggestions based on your saving pattern.' },
-  { icon: Target, title: 'Goal-Based Investing', description: 'Set a target — a trip, a gadget, an emergency fund — and track it visually.' },
-  { icon: BarChart3, title: 'Spending Analytics', description: 'Understand exactly where your money goes, every single month.' },
-  { icon: ShieldCheck, title: 'AI Financial Health Score', description: 'A single score that tracks your financial wellbeing over time.' },
-  { icon: Crown, title: 'Premium Wealth Manager', description: 'Tax insights, portfolio rebalancing, and advanced analytics for power users.' },
-];
-
-/**
- * Landing — public marketing homepage. Fully static UI, no backend
- * calls. All numbers and copy here are placeholder/demo content.
- */
 export default function Landing() {
   const navigate = useNavigate();
 
   return (
-    <>
-      {/* ---------- HERO ---------- */}
-      <section className="max-w-7xl mx-auto px-6 pt-16 pb-20 md:pt-24 md:pb-28 grid md:grid-cols-2 gap-14 items-center">
-        <div className="text-center md:text-left">
-          <Badge>UPI-linked · AI-powered · Beginner friendly</Badge>
+    <div className="bg-bg min-h-screen">
 
-          <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl text-navy leading-[1.1] mt-5">
-            Every payment becomes an <span className="text-mint">investment.</span>
-          </h1>
+      {/* ===== HERO SECTION ===== */}
+      <section className="relative overflow-hidden pt-12 pb-20 lg:pt-16 lg:pb-28 max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
-          <p className="text-text-muted text-base md:text-lg mt-5 max-w-lg mx-auto md:mx-0">
-            Har Payment Mein Bachat. Har Bachat Mein Investment. Bachat+ rounds up
-            your everyday spends and invests the spare change automatically —
-            no extra effort, no lump sum required.
-          </p>
+          {/* Left Column: Headlines & CTAs (7 cols) */}
+          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-mint/10 border border-mint/20 text-emerald-800 text-xs font-extrabold">
+              <Sparkles size={14} className="text-emerald-700" />
+              <span>Smart Round-Up Wealth Platform</span>
+            </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-3 mt-8 justify-center md:justify-start">
-            <Button variant="primary" size="lg" fullWidth={false} onClick={() => navigate('/signup')} className="w-full sm:w-auto">
-              Get Started Free <ArrowRight size={18} />
-            </Button>
-            <Button variant="secondary" size="lg" onClick={() => navigate('/login')} className="w-full sm:w-auto">
-              Log In
-            </Button>
+            <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-navy leading-[1.1] tracking-tight">
+              Invest Every Spare Rupee <span className="text-mint">Automatically.</span>
+            </h1>
+
+            <p className="text-text-muted text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
+              Every UPI payment you make is rounded up to the nearest ₹10. The spare change flows directly into your <strong className="text-navy font-bold">Smart Investment Wallet</strong> and compounds over time into real wealth.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2 justify-center lg:justify-start">
+              <Button
+                variant="accent"
+                size="lg"
+                onClick={() => navigate('/signup')}
+                className="w-full sm:w-auto text-base font-extrabold py-4 px-8 shadow-xl shadow-mint/20"
+              >
+                Get Started Free <ArrowRight size={18} className="ml-2" />
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={() => navigate('/login')}
+                className="w-full sm:w-auto text-base font-bold py-4 px-8"
+              >
+                Explore App Demo
+              </Button>
+            </div>
+
+            {/* Trust Badges */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-text-muted font-semibold pt-4">
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 size={16} className="text-emerald-700" /> Instant UPI Round-Up
+              </span>
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck size={16} className="text-teal" /> Firebase Verified Auth
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Lock size={16} className="text-navy" /> 100% Bank-Grade Security
+              </span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 mt-12 max-w-md mx-auto md:mx-0">
-            {STATS.map((s) => (
-              <StatBlock key={s.label} value={s.value} label={s.label} />
-            ))}
+          {/* Right Column: Interactive 3D Canvas (5 cols) */}
+          <div className="lg:col-span-5 relative">
+            <Hero3DScene />
           </div>
+
         </div>
-
-        <RoundUpPreviewCard />
       </section>
 
-      {/* ---------- HOW IT WORKS ---------- */}
-      <section className="bg-surface border-y border-border">
-        <div className="max-w-7xl mx-auto px-6 py-20">
-          <div className="text-center max-w-xl mx-auto mb-12">
-            <Badge tone="outline">How it works</Badge>
-            <h2 className="font-display font-bold text-2xl md:text-3xl text-navy mt-4">
-              From spare change to real wealth, automatically
+      {/* ===== STORY SIMULATOR SHOWCASE ===== */}
+      <section className="max-w-4xl mx-auto px-6 pb-20">
+        <RoundUpStorySimulator />
+      </section>
+
+      {/* ===== HOW IT WORKS ===== */}
+      <HowItWorksSection />
+
+      {/* ===== WHY BACHAT+ PILLARS ===== */}
+      <WhyBachatSection />
+
+      {/* ===== SECTION 1: INTERACTIVE WEALTH JOURNEY ===== */}
+      <WealthJourneySection />
+
+      {/* ===== SECTION 2: LIVE ROUND-UP CALCULATOR ===== */}
+      <LiveCalculatorSection />
+
+      {/* ===== FINAL CTA BANNER ===== */}
+      <section className="max-w-7xl mx-auto px-6 pb-24">
+        <div className="relative overflow-hidden bg-navy rounded-3xl p-10 sm:p-16 text-center text-white shadow-2xl border border-white/10">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-mint/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal/15 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 max-w-2xl mx-auto space-y-6">
+            <Sparkles size={36} className="text-mint mx-auto" />
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-white tracking-tight">
+              Ready to Turn Everyday Spends into Future Wealth?
             </h2>
+            <p className="text-xs sm:text-sm text-white/70">
+              Join Bachat+ today and let every payment quietly build your Smart Investment Wallet.
+            </p>
+            <Button
+              variant="accent"
+              size="lg"
+              onClick={() => navigate('/signup')}
+              className="py-4 px-8 text-base font-extrabold shadow-xl shadow-mint/30"
+            >
+              Create Your Free Account <ArrowRight size={18} className="ml-2" />
+            </Button>
           </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {STEPS.map((step, i) => (
-              <StepCard key={step.title} number={i + 1} {...step} />
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* ---------- FEATURES ---------- */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="text-center max-w-xl mx-auto mb-12">
-          <Badge>Everything you need</Badge>
-          <h2 className="font-display font-bold text-2xl md:text-3xl text-navy mt-4">
-            One platform. A full wealth-building toolkit.
-          </h2>
-        </div>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {FEATURES.map((f) => (
-            <FeatureCard key={f.title} {...f} />
-          ))}
-        </div>
-      </section>
-
-      {/* ---------- CTA BANNER ---------- */}
-      <section className="max-w-7xl mx-auto px-6 pb-20">
-        <div className="relative overflow-hidden bg-navy rounded-3xl px-8 py-14 md:py-16 text-center">
-          <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-teal/20 blur-3xl" />
-          <div className="absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-mint/20 blur-3xl" />
-
-          <TrendingUp className="mx-auto text-mint mb-4" size={32} />
-          <h2 className="font-display font-bold text-2xl md:text-4xl text-white max-w-2xl mx-auto">
-            Start building wealth with your next payment.
-          </h2>
-          <p className="text-white/60 mt-3 max-w-md mx-auto">
-            Join Bachat+ and let every rupee you spend quietly work for you.
-          </p>
-          <Button
-            variant="accent"
-            size="lg"
-            className="mt-8"
-            onClick={() => navigate('/signup')}
-          >
-            Create Free Account <ArrowRight size={18} />
-          </Button>
-        </div>
-      </section>
-    </>
+    </div>
   );
 }

@@ -22,9 +22,9 @@ export default function Card({
   return (
     <div
       className={`
-        bg-surface border border-border rounded-2xl
+        bg-surface/95 backdrop-blur-sm border border-border/90 rounded-2xl shadow-[0_1px_2px_rgba(10,46,92,0.025)]
         ${paddingStyles[padding]}
-        ${hoverable ? 'transition-shadow duration-200 hover:shadow-lg hover:shadow-navy/5' : ''}
+        ${hoverable ? 'transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl hover:shadow-navy/8 hover:border-navy/10' : ''}
         ${className}
       `}
     >

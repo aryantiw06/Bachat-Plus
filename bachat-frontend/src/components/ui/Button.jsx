@@ -11,9 +11,9 @@
  */
 const VARIANT_STYLES = {
   primary:
-    'bg-navy text-white hover:bg-navy-light active:bg-navy-dark shadow-sm shadow-navy/20',
+    'bg-navy text-white hover:bg-navy-light active:bg-navy-dark shadow-md shadow-navy/20',
   accent:
-    'bg-mint text-navy hover:brightness-95 active:brightness-90 shadow-sm shadow-mint/30',
+    'bg-mint text-navy hover:brightness-95 active:brightness-90 shadow-md shadow-mint/30',
   secondary:
     'bg-white text-navy border border-border hover:border-navy/40 hover:bg-navy/5',
   ghost:
@@ -46,8 +46,10 @@ export default function Button({
       disabled={disabled || loading}
       className={`
         inline-flex items-center justify-center gap-2 font-semibold
-        transition-all duration-150
-        disabled:opacity-50 disabled:cursor-not-allowed
+        min-h-10 transition-all duration-200 ease-out
+        hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2
+        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:active:scale-100
         ${VARIANT_STYLES[variant]}
         ${SIZE_STYLES[size]}
         ${fullWidth ? 'w-full' : ''}

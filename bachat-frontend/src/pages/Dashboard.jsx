@@ -61,6 +61,11 @@ export default function Dashboard() {
       {/* ---- Row 1: Welcome Header ---- */}
       <WelcomeHeader investmentWallet={investmentWallet} />
 
+      <div className="flex items-center justify-between gap-4 mb-3 px-1">
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-text-muted">Your money, in motion</p>
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700 bg-mint/10 border border-mint/20 rounded-full px-2.5 py-1">● Live wallet</span>
+      </div>
+
       {/* ---- Row 2: Wallet Summary Cards ---- */}
       <WalletSummaryCards stats={stats} />
 
